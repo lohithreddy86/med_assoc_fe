@@ -162,24 +162,24 @@
 
 ### Implementation for User Story 4
 
-- [ ] T075 [P] [US4] Create SummarizePanel component in src/components/SummarizePanel/SummarizePanel.jsx with Summarize button, loading spinner, and summary display area
-- [ ] T076 [P] [US4] Style SummarizePanel component in src/components/SummarizePanel/SummarizePanel.module.css for bottom panel layout and high-contrast mode
-- [ ] T077 [US4] Add ARIA attributes to SummarizePanel (button role, aria-label="Summarize all text boxes", aria-live region for summary result) per FR-040
-- [ ] T078 [US4] Implement Summarize button click handler to collect text from all TextBox entities in AppContext state (FR-044)
-- [ ] T079 [US4] Add validation to disable Summarize button when no text boxes exist with tooltip explanation per edge case in spec.md
-- [ ] T080 [US4] Call summarization API via api.js service with collected texts (adaptive length determined by backend per clarification #3, FR-045)
-- [ ] T081 [US4] Disable Summarize button and show loading spinner during API request (FR-046)
-- [ ] T082 [US4] Display returned summary in SummarizePanel with formatted text (FR-047)
-- [ ] T083 [US4] Implement Copy button to copy summary text to clipboard using navigator.clipboard.writeText() API (FR-048)
-- [ ] T084 [US4] Add success toast/message after copying to clipboard with ARIA announcement
-- [ ] T085 [US4] Implement Export button with dropdown menu for plain text (.txt) and JSON (.json) export formats (FR-049)
-- [ ] T086 [US4] Create export utility function to generate downloadable files (Blob with MIME types text/plain and application/json)
-- [ ] T087 [US4] Implement Ctrl+Enter keyboard shortcut in App.jsx to trigger summarization (FR-050)
-- [ ] T088 [US4] Add error handling for summarization failures with user-friendly message and retry button (FR-055)
-- [ ] T089 [US4] Add ARIA announcements for summarization status (processing, success, error) via aria-live regions (FR-043)
+- [x] T075 [P] [US4] Create SummarizePanel component in src/components/SummarizePanel/SummarizePanel.jsx with Summarize button, loading spinner, and summary display area
+- [x] T076 [P] [US4] Style SummarizePanel component in src/components/SummarizePanel/SummarizePanel.module.css for bottom panel layout and high-contrast mode
+- [x] T077 [US4] Add ARIA attributes to SummarizePanel (button role, aria-label="Summarize all text boxes", aria-live region for summary result) per FR-040
+- [x] T078 [US4] Implement Summarize button click handler to collect text from all TextBox entities in AppContext state (FR-044)
+- [x] T079 [US4] Add validation to disable Summarize button when no text boxes exist with tooltip explanation per edge case in spec.md
+- [x] T080 [US4] Call summarization API via api.js service with collected texts (adaptive length determined by backend per clarification #3, FR-045)
+- [x] T081 [US4] Disable Summarize button and show loading spinner during API request (FR-046)
+- [x] T082 [US4] Display returned summary in SummarizePanel with formatted text (FR-047)
+- [x] T083 [US4] Implement Copy button to copy summary text to clipboard using navigator.clipboard.writeText() API (FR-048)
+- [x] T084 [US4] Add success toast/message after copying to clipboard with ARIA announcement
+- [x] T085 [US4] Implement Export button with dropdown menu for plain text (.txt) and JSON (.json) export formats (FR-049)
+- [x] T086 [US4] Create export utility function to generate downloadable files (Blob with MIME types text/plain and application/json)
+- [x] T087 [US4] Implement Ctrl+Enter keyboard shortcut in App.jsx to trigger summarization (FR-050)
+- [x] T088 [US4] Add error handling for summarization failures with user-friendly message and retry button (FR-055)
+- [x] T089 [US4] Add ARIA announcements for summarization status (processing, success, error) via aria-live regions (FR-043)
 - [ ] T090 [US4] Verify summarization completes within 3 seconds for 5 text boxes (SC-005)
-- [ ] T091 [US4] Add edge case handling for network connection failure during summarization per edge case in spec.md
-- [ ] T092 [US4] Integrate SummarizePanel with App.jsx layout (display at bottom of screen)
+- [x] T091 [US4] Add edge case handling for network connection failure during summarization per edge case in spec.md
+- [x] T092 [US4] Integrate SummarizePanel with App.jsx layout (display at bottom of screen)
 
 **Checkpoint**: At this point, User Story 4 should be fully functional and testable independently. Users receive coherent summaries with adaptive length that can be copied or exported.
 

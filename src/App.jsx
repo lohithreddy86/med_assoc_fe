@@ -6,6 +6,7 @@ import { lightTheme, highContrastTheme } from './theme';
 import { PDFUploader } from './components/PDFUploader/PDFUploader';
 import { PDFViewerPane } from './components/PDFViewerPane/PDFViewerPane';
 import { SnipList } from './components/SnipList/SnipList';
+import { SummarizePanel } from './components/SummarizePanel/SummarizePanel';
 import { useEffect } from 'react';
 
 function AppLayout() {
@@ -30,17 +31,39 @@ function AppLayout() {
       sx={{
         flex: 1,
         display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
       }}
     >
-      <PDFViewerPane />
+      {/* Top section: PDF viewer and snip list */}
       <Box
         sx={{
-          width: 400,
-          flexShrink: 0,
+          flex: 1,
+          display: 'flex',
+          overflow: 'hidden',
+          minHeight: 0,
         }}
       >
-        <SnipList />
+        <PDFViewerPane />
+        <Box
+          sx={{
+            width: 400,
+            flexShrink: 0,
+          }}
+        >
+          <SnipList />
+        </Box>
+      </Box>
+
+      {/* Bottom section: Summary panel */}
+      <Box
+        sx={{
+          height: 250,
+          flexShrink: 0,
+          borderTop: '1px solid #e0e0e0',
+        }}
+      >
+        <SummarizePanel />
       </Box>
     </Box>
   );
