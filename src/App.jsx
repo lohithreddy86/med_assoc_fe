@@ -5,10 +5,25 @@ import { AppProvider, useAppContext } from './contexts/AppContext';
 import { lightTheme, highContrastTheme } from './theme';
 import { PDFUploader } from './components/PDFUploader/PDFUploader';
 import { PDFViewerPane } from './components/PDFViewerPane/PDFViewerPane';
+import { SnipList } from './components/SnipList/SnipList';
 import { useEffect } from 'react';
 
 function AppLayout() {
   const { pdfDocument } = useAppContext();
+
+  if (!pdfDocument) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          overflow: 'hidden',
+        }}
+      >
+        <PDFUploader />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -18,7 +33,15 @@ function AppLayout() {
         overflow: 'hidden',
       }}
     >
-      {!pdfDocument ? <PDFUploader /> : <PDFViewerPane />}
+      <PDFViewerPane />
+      <Box
+        sx={{
+          width: 400,
+          flexShrink: 0,
+        }}
+      >
+        <SnipList />
+      </Box>
     </Box>
   );
 }

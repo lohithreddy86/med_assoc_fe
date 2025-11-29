@@ -98,28 +98,28 @@
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Create SnipOverlay component in src/components/SnipOverlay/SnipOverlay.jsx with transparent canvas overlay positioned absolutely over PDFViewerPane canvas
-- [ ] T038 [P] [US2] Implement mouse event handlers in SnipOverlay (mousedown, mousemove, mouseup) to draw rectangular selections with semi-transparent fill and colored stroke (FR-013, FR-014)
-- [ ] T039 [P] [US2] Style SnipOverlay component in src/components/SnipOverlay/SnipOverlay.module.css for overlay positioning and selection rectangle appearance
-- [ ] T040 [US2] Integrate SnipOverlay with onCanvasLayerRender plugin from React PDF Viewer to access canvas element and scale factor per research.md
-- [ ] T041 [US2] Add resize handles to completed selections in SnipOverlay for adjustment after initial draw (FR-015)
-- [ ] T042 [US2] Implement keyboard-based selection resizing and movement in SnipOverlay using arrow keys for accessibility (FR-016)
-- [ ] T043 [US2] Integrate coordinate conversion utility in SnipOverlay onMouseUp handler to convert pixel coordinates to normalized PDF coordinates using algorithm specified in spec.md (3-step: unscale → normalize → invert Y-axis) via convertToNormalizedPDFCoords from src/utils/coordinates.js per research.md
-- [ ] T044 [US2] Add snip to AppContext state immediately on mouseup (non-blocking UI per clarification #4, FR-025)
-- [ ] T045 [US2] Enqueue OCR request to ocrQueue.enqueue with snip data (page number, normalized rect) per research.md OCRQueue pattern
-- [ ] T046 [US2] Add loading indicator overlay per snip while OCR processes (status: 'pending' → 'processing' → 'success'/'error' per FR-021)
-- [ ] T047 [US2] Handle OCR success callback to create new TextBox entity in AppContext with extracted text, source page number, creation order, unique ID (FR-022, FR-024, Key Entities in spec.md)
-- [ ] T048 [US2] Handle OCR failure callback to display user-friendly error message and mark snip as failed (FR-023, FR-054)
-- [ ] T049 [US2] Add ARIA announcements for OCR status changes (loading, success, error) via aria-live regions (FR-043)
-- [ ] T050 [P] [US2] Create SnipList component in src/components/SnipList/SnipList.jsx to display ordered list of editable TextBox entities
-- [ ] T051 [P] [US2] Render each TextBox as MUI TextField (multiline) with source page number label and editable text content in SnipList (FR-027, FR-028)
-- [ ] T052 [P] [US2] Style SnipList component in src/components/SnipList/SnipList.module.css for scrollable side panel layout and high-contrast mode
-- [ ] T053 [US2] Implement single-click focus model in SnipList: clicking a text box sets focusedBoxId in AppContext (clarification #1)
-- [ ] T054 [US2] Add visual focus indicator to currently focused text box with WCAG 2.1 AA compliant focus ring (FR-041)
-- [ ] T055 [US2] Implement Tab/Shift+Tab navigation between text boxes in SnipList (FR-039)
-- [ ] T056 [US2] Add ARIA roles to SnipList container (role="region", aria-label="Extracted text boxes") and each text box (aria-labelledby with page number) per FR-040
+- [X] T037 [P] [US2] Create SnipOverlay component in src/components/SnipOverlay/SnipOverlay.jsx with transparent canvas overlay positioned absolutely over PDFViewerPane canvas
+- [X] T038 [P] [US2] Implement mouse event handlers in SnipOverlay (mousedown, mousemove, mouseup) to draw rectangular selections with semi-transparent fill and colored stroke (FR-013, FR-014)
+- [X] T039 [P] [US2] Style SnipOverlay component in src/components/SnipOverlay/SnipOverlay.module.css for overlay positioning and selection rectangle appearance
+- [X] T040 [US2] Integrate SnipOverlay with onCanvasLayerRender plugin from React PDF Viewer to access canvas element and scale factor per research.md
+- [X] T041 [US2] Add resize handles to completed selections in SnipOverlay for adjustment after initial draw (FR-015)
+- [X] T042 [US2] Implement keyboard-based selection resizing and movement in SnipOverlay using arrow keys for accessibility (FR-016)
+- [X] T043 [US2] Integrate coordinate conversion utility in SnipOverlay onMouseUp handler to convert pixel coordinates to normalized PDF coordinates using algorithm specified in spec.md (3-step: unscale → normalize → invert Y-axis) via convertToNormalizedPDFCoords from src/utils/coordinates.js per research.md
+- [X] T044 [US2] Add snip to AppContext state immediately on mouseup (non-blocking UI per clarification #4, FR-025)
+- [X] T045 [US2] Enqueue OCR request to ocrQueue.enqueue with snip data (page number, normalized rect) per research.md OCRQueue pattern
+- [X] T046 [US2] Add loading indicator overlay per snip while OCR processes (status: 'pending' → 'processing' → 'success'/'error' per FR-021)
+- [X] T047 [US2] Handle OCR success callback to create new TextBox entity in AppContext with extracted text, source page number, creation order, unique ID (FR-022, FR-024, Key Entities in spec.md)
+- [X] T048 [US2] Handle OCR failure callback to display user-friendly error message and mark snip as failed (FR-023, FR-054)
+- [X] T049 [US2] Add ARIA announcements for OCR status changes (loading, success, error) via aria-live regions (FR-043)
+- [X] T050 [P] [US2] Create SnipList component in src/components/SnipList/SnipList.jsx to display ordered list of editable TextBox entities
+- [X] T051 [P] [US2] Render each TextBox as MUI TextField (multiline) with source page number label and editable text content in SnipList (FR-027, FR-028)
+- [X] T052 [P] [US2] Style SnipList component in src/components/SnipList/SnipList.module.css for scrollable side panel layout and high-contrast mode
+- [X] T053 [US2] Implement single-click focus model in SnipList: clicking a text box sets focusedBoxId in AppContext (clarification #1)
+- [X] T054 [US2] Add visual focus indicator to currently focused text box with WCAG 2.1 AA compliant focus ring (FR-041)
+- [X] T055 [US2] Implement Tab/Shift+Tab navigation between text boxes in SnipList (FR-039)
+- [X] T056 [US2] Add ARIA roles to SnipList container (role="region", aria-label="Extracted text boxes") and each text box (aria-labelledby with page number) per FR-040
 - [ ] T057 [US2] Verify OCR requests process sequentially in order of snip creation (FIFO queue, FR-026)
-- [ ] T058 [US2] Add edge case handling for "No text detected" scenario when OCR returns empty result per edge case in spec.md
+- [X] T058 [US2] Add edge case handling for "No text detected" scenario when OCR returns empty result per edge case in spec.md
 - [ ] T059 [US2] Add edge case handling for accurate coordinate conversion at 400% zoom per edge case in spec.md
 - [ ] T060 [US2] Verify OCR processing completes within 1.5 seconds for 90% of requests (FR-058, SC-002)
 

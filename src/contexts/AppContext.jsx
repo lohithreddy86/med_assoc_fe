@@ -183,6 +183,7 @@ export function AppProvider({ children }) {
     addSnip,
     updateSnip,
     removeSnip,
+    deleteSnip: removeSnip, // Alias for consistency with deleteTextBox
     addTextBox,
     updateTextBox,
     insertTextBox,

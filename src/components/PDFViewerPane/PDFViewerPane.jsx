@@ -16,6 +16,7 @@ import '@react-pdf-viewer/zoom/lib/styles/index.css';
 import * as pdfjsLib from 'pdfjs-dist';
 import { useAppContext } from '../../contexts/AppContext';
 import { extractPageDimensions } from '../../utils/coordinates';
+import { SnipOverlay } from '../SnipOverlay/SnipOverlay';
 
 // PDF.js worker URL (T027) - Must match pdfjs-dist version
 const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -30,6 +31,8 @@ export function PDFViewerPane() {
   const { pdfDocument, pdfMetadata, currentPage, setCurrentPage } = useAppContext();
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [zoomLevelIndex, setZoomLevelIndex] = useState(2); // Start at 100%
+  const [pageDimensions, setPageDimensions] = useState(null);
+  const [enableSnipping, setEnableSnipping] = useState(true); // Toggle for snipping mode
 
   // Initialize plugins
   const thumbnailPluginInstance = thumbnailPlugin();
@@ -44,8 +47,9 @@ export function PDFViewerPane() {
       // Load the PDF document from URL to extract dimensions
       const loadingTask = pdfjsLib.getDocument(pdfDocument);
       loadingTask.promise
-        .then((pdfDoc) => extractPageDimensions(pdfDoc, 1))
+        .then((pdfDoc) => extractPageDimensions(pdfDoc, currentPage))
         .then((dimensions) => {
+          setPageDimensions(dimensions);
           announceToScreenReader(
             `PDF loaded with ${pdfMetadata.pageCount} pages. Page dimensions: ${Math.round(dimensions.width)} by ${Math.round(dimensions.height)} points.`,
             'status'
@@ -55,7 +59,7 @@ export function PDFViewerPane() {
           announceToScreenReader(`Failed to extract page dimensions: ${err.message}`, 'error');
         });
     }
-  }, [pdfDocument, pdfMetadata]);
+  }, [pdfDocument, pdfMetadata, currentPage]);
 
   // Zoom in handler (T030)
   const handleZoomIn = useCallback(() => {
@@ -256,12 +260,22 @@ export function PDFViewerPane() {
               flex: 1,
               overflow: 'auto',
               backgroundColor: 'grey.200',
+              position: 'relative',
             }}
           >
             <Viewer
               fileUrl={pdfDocument}
               plugins={[thumbnailPluginInstance, zoomPluginInstance]}
             />
+
+            {/* Snip Overlay for drawing rectangles */}
+            {enableSnipping && pageDimensions && (
+              <SnipOverlay
+                scale={zoomLevel}
+                pageDimensions={pageDimensions}
+                pageNumber={currentPage}
+              />
+            )}
           </Box>
         </Box>
       </Box>
