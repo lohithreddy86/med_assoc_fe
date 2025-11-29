@@ -1,8 +1,8 @@
-import { http, HttpResponse, delay } from 'msw';
+import { http, HttpResponse, delay } from "msw";
 
 export const summaryHandlers = [
   // POST /api/summarize - Text summarization endpoint
-  http.post('/api/summarize', async ({ request }) => {
+  http.post("/api/summarize", async ({ request }) => {
     try {
       const body = await request.json();
       const { texts } = body;
@@ -11,18 +11,18 @@ export const summaryHandlers = [
       if (!texts || !Array.isArray(texts)) {
         return HttpResponse.json(
           {
-            error: 'Missing required field: texts (must be an array)',
+            error: "Missing required field: texts (must be an array)",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       if (texts.length === 0) {
         return HttpResponse.json(
           {
-            error: 'texts array cannot be empty',
+            error: "texts array cannot be empty",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -33,9 +33,9 @@ export const summaryHandlers = [
       if (Math.random() < 0.05) {
         return HttpResponse.json(
           {
-            error: 'Summarization service temporarily unavailable',
+            error: "Summarization service temporarily unavailable",
           },
-          { status: 503 }
+          { status: 503 },
         );
       }
 
@@ -45,16 +45,16 @@ export const summaryHandlers = [
       const response = {
         summary,
         timestamp: new Date().toISOString(),
-        model_version: 'mock-v1.0',
+        model_version: "mock-v1.0",
       };
 
       return HttpResponse.json(response, { status: 200 });
     } catch (error) {
       return HttpResponse.json(
         {
-          error: 'Invalid request format',
+          error: "Invalid request format",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
   }),
@@ -65,7 +65,7 @@ export const summaryHandlers = [
 //            Medium input (500-2000 words): ~200-400 words (20-25%)
 //            Long input (>2000 words): ~400-600 words (15-20%)
 function generateAdaptiveSummary(texts) {
-  const combinedText = texts.join(' ');
+  const combinedText = texts.join(" ");
   const wordCount = combinedText.split(/\s+/).length;
 
   let summaryLength;
@@ -84,46 +84,69 @@ function generateAdaptiveSummary(texts) {
   const summaryParts = [];
 
   // Add opening
-  summaryParts.push('Summary of Medical Documentation:');
+  summaryParts.push("Summary of Medical Documentation:");
 
   // Detect key medical information from texts
-  const hasDiagnosis = texts.some(t => t.toLowerCase().includes('diagnosis'));
-  const hasMedication = texts.some(t => t.toLowerCase().includes('medication') || t.toLowerCase().includes('prescription'));
-  const hasVitals = texts.some(t => t.toLowerCase().includes('blood pressure') || t.toLowerCase().includes('heart rate'));
-  const hasLabs = texts.some(t => t.toLowerCase().includes('lab') || t.toLowerCase().includes('glucose') || t.toLowerCase().includes('a1c'));
+  const hasDiagnosis = texts.some((t) => t.toLowerCase().includes("diagnosis"));
+  const hasMedication = texts.some(
+    (t) =>
+      t.toLowerCase().includes("medication") ||
+      t.toLowerCase().includes("prescription"),
+  );
+  const hasVitals = texts.some(
+    (t) =>
+      t.toLowerCase().includes("blood pressure") ||
+      t.toLowerCase().includes("heart rate"),
+  );
+  const hasLabs = texts.some(
+    (t) =>
+      t.toLowerCase().includes("lab") ||
+      t.toLowerCase().includes("glucose") ||
+      t.toLowerCase().includes("a1c"),
+  );
 
   if (hasDiagnosis) {
-    summaryParts.push('Patient presents with documented diagnoses requiring ongoing management.');
+    summaryParts.push(
+      "Patient presents with documented diagnoses requiring ongoing management.",
+    );
   }
 
   if (hasMedication) {
-    summaryParts.push('Current medication regimen includes prescribed treatments to be taken as directed.');
+    summaryParts.push(
+      "Current medication regimen includes prescribed treatments to be taken as directed.",
+    );
   }
 
   if (hasVitals) {
-    summaryParts.push('Vital signs have been recorded and fall within expected clinical parameters.');
+    summaryParts.push(
+      "Vital signs have been recorded and fall within expected clinical parameters.",
+    );
   }
 
   if (hasLabs) {
-    summaryParts.push('Laboratory results indicate metabolic markers within reference ranges.');
+    summaryParts.push(
+      "Laboratory results indicate metabolic markers within reference ranges.",
+    );
   }
 
-  summaryParts.push('Continued monitoring and follow-up care are recommended per clinical guidelines.');
+  summaryParts.push(
+    "Continued monitoring and follow-up care are recommended per clinical guidelines.",
+  );
 
   // Adjust length based on input
   if (summaryLength < 50) {
     // Short summary
-    return summaryParts.slice(0, 2).join(' ');
+    return summaryParts.slice(0, 2).join(" ");
   } else if (summaryLength < 150) {
     // Medium summary
-    return summaryParts.join(' ');
+    return summaryParts.join(" ");
   } else {
     // Long summary - add more detail
     summaryParts.push(
-      'Patient demonstrates adherence to treatment protocols with documented compliance.',
-      'Risk stratification and preventive care measures have been reviewed.',
-      'Care coordination with specialists recommended for comprehensive management.'
+      "Patient demonstrates adherence to treatment protocols with documented compliance.",
+      "Risk stratification and preventive care measures have been reviewed.",
+      "Care coordination with specialists recommended for comprehensive management.",
     );
-    return summaryParts.join(' ');
+    return summaryParts.join(" ");
   }
 }

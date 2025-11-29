@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from 'react';
-import { useUndo } from '../hooks/useUndo';
+import { createContext, useContext, useState } from "react";
+import { useUndo } from "../hooks/useUndo";
 
 const AppContext = createContext(null);
 
@@ -59,7 +59,7 @@ export function AppProvider({ children }) {
     setState((prevState) => ({
       ...prevState,
       snips: prevState.snips.map((snip) =>
-        snip.id === snipId ? { ...snip, ...updates } : snip
+        snip.id === snipId ? { ...snip, ...updates } : snip,
       ),
     }));
   };
@@ -82,7 +82,7 @@ export function AppProvider({ children }) {
     setState((prevState) => ({
       ...prevState,
       textBoxes: prevState.textBoxes.map((box) =>
-        box.id === boxId ? { ...box, ...updates } : box
+        box.id === boxId ? { ...box, ...updates } : box,
       ),
     }));
   };
@@ -123,10 +123,13 @@ export function AppProvider({ children }) {
   const mergeTextBoxes = (boxId) => {
     setState((prevState) => {
       const currentIndex = prevState.textBoxes.findIndex(
-        (box) => box.id === boxId
+        (box) => box.id === boxId,
       );
 
-      if (currentIndex === -1 || currentIndex === prevState.textBoxes.length - 1) {
+      if (
+        currentIndex === -1 ||
+        currentIndex === prevState.textBoxes.length - 1
+      ) {
         // Cannot merge last box or box not found
         return prevState;
       }
@@ -209,7 +212,7 @@ export function AppProvider({ children }) {
 export function useAppContext() {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error("useAppContext must be used within an AppProvider");
   }
   return context;
 }

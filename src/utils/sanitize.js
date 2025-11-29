@@ -5,7 +5,7 @@
  * to prevent XSS attacks (FR-051)
  */
 
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -15,8 +15,8 @@ import DOMPurify from 'dompurify';
  * @returns {string} Sanitized safe HTML/text
  */
 export function sanitizeHTML(dirty, config = {}) {
-  if (typeof dirty !== 'string') {
-    return '';
+  if (typeof dirty !== "string") {
+    return "";
   }
 
   const defaultConfig = {
@@ -36,8 +36,8 @@ export function sanitizeHTML(dirty, config = {}) {
  * @returns {string} Plain text with all HTML removed
  */
 export function sanitizeText(text) {
-  if (typeof text !== 'string') {
-    return '';
+  if (typeof text !== "string") {
+    return "";
   }
 
   // Strip all HTML tags and return plain text
@@ -56,8 +56,8 @@ export function sanitizeText(text) {
  * @returns {string} Sanitized text safe for display
  */
 export function sanitizeUserInput(input) {
-  if (typeof input !== 'string') {
-    return '';
+  if (typeof input !== "string") {
+    return "";
   }
 
   // For text inputs, we want plain text only
@@ -73,8 +73,8 @@ export function sanitizeUserInput(input) {
  * @returns {string} Sanitized summary safe for display
  */
 export function sanitizeSummary(summary) {
-  if (typeof summary !== 'string') {
-    return '';
+  if (typeof summary !== "string") {
+    return "";
   }
 
   // For MVP, summaries are plain text

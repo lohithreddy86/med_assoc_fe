@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { useAppContext } from '../../contexts/AppContext';
-import { convertToNormalizedPDFCoords } from '../../utils/coordinates';
-import { ocrQueue } from '../../services/ocrQueue';
-import styles from './SnipOverlay.module.css';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useAppContext } from "../../contexts/AppContext";
+import { convertToNormalizedPDFCoords } from "../../utils/coordinates";
+import { ocrQueue } from "../../services/ocrQueue";
+import styles from "./SnipOverlay.module.css";
 
 export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
-  const { addSnip, updateSnip, addTextBox, deleteSnip, snips } = useAppContext();
+  const { addSnip, updateSnip, addTextBox, deleteSnip, snips } =
+    useAppContext();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [currentRect, setCurrentRect] = useState(null);
@@ -14,74 +15,95 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
   const overlayRef = useRef(null);
 
   // Helper: Re-send OCR request after resizing
-  const resendOCRRequest = useCallback((snip) => {
-    // Convert updated browser coordinates to normalized PDF coordinates
-    const normalizedCoords = convertToNormalizedPDFCoords(
-      snip.browserRect,
-      scale,
-      pageDimensions
-    );
+  const resendOCRRequest = useCallback(
+    (snip) => {
+      // Convert updated browser coordinates to normalized PDF coordinates
+      const normalizedCoords = convertToNormalizedPDFCoords(
+        snip.browserRect,
+        scale,
+        pageDimensions,
+      );
 
-    // Update snip with new coordinates and reset status
-    updateSnip(snip.id, {
-      rect: normalizedCoords,
-      status: 'pending',
-    });
-
-    // Enqueue new OCR request
-    const requestId = ocrQueue.enqueue(
-      {
-        page: pageNumber,
+      // Update snip with new coordinates and reset status
+      updateSnip(snip.id, {
         rect: normalizedCoords,
-      },
-      // Success callback
-      (extractedText) => {
-        updateSnip(snip.id, { status: 'success' });
+        status: "pending",
+      });
 
-        // Create new text box with extracted text
-        const textBox = {
-          id: crypto.randomUUID(),
-          text: extractedText || '',
-          pageNumber,
-          createdAt: Date.now(),
-          modifiedAt: Date.now(),
-        };
+      // Enqueue new OCR request
+      const requestId = ocrQueue.enqueue(
+        {
+          page: pageNumber,
+          rect: normalizedCoords,
+        },
+        // Success callback
+        (extractedText) => {
+          updateSnip(snip.id, { status: "success" });
 
-        addTextBox(textBox);
+          // Create new text box with extracted text
+          const textBox = {
+            id: crypto.randomUUID(),
+            text: extractedText || "",
+            pageNumber,
+            createdAt: Date.now(),
+            modifiedAt: Date.now(),
+          };
 
-        if (extractedText) {
-          announceToScreenReader(`OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`, 'status');
-        } else {
-          announceToScreenReader('OCR complete. No text detected in this region.', 'status');
-        }
-      },
-      // Error callback
-      (error) => {
-        updateSnip(snip.id, { status: 'error', error: error.message });
-        announceToScreenReader(`OCR failed: ${error.message}`, 'error');
-      },
-      // Timeout callback
-      () => {
-        updateSnip(snip.id, { status: 'error', error: 'Request timed out' });
-        announceToScreenReader('OCR request timed out after 30 seconds', 'error');
+          addTextBox(textBox);
+
+          if (extractedText) {
+            announceToScreenReader(
+              `OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`,
+              "status",
+            );
+          } else {
+            announceToScreenReader(
+              "OCR complete. No text detected in this region.",
+              "status",
+            );
+          }
+        },
+        // Error callback
+        (error) => {
+          updateSnip(snip.id, { status: "error", error: error.message });
+          announceToScreenReader(`OCR failed: ${error.message}`, "error");
+        },
+        // Timeout callback
+        () => {
+          updateSnip(snip.id, { status: "error", error: "Request timed out" });
+          announceToScreenReader(
+            "OCR request timed out after 30 seconds",
+            "error",
+          );
+        },
+      );
+
+      if (!requestId) {
+        updateSnip(snip.id, {
+          status: "error",
+          error: "Too many pending requests",
+        });
+        announceToScreenReader(
+          "Too many pending OCR requests. Please wait for current requests to complete.",
+          "error",
+        );
+      } else {
+        updateSnip(snip.id, { status: "processing" });
+        announceToScreenReader(
+          `Selection resized. Processing OCR...`,
+          "status",
+        );
       }
-    );
-
-    if (!requestId) {
-      updateSnip(snip.id, { status: 'error', error: 'Too many pending requests' });
-      announceToScreenReader('Too many pending OCR requests. Please wait for current requests to complete.', 'error');
-    } else {
-      updateSnip(snip.id, { status: 'processing' });
-      announceToScreenReader(`Selection resized. Processing OCR...`, 'status');
-    }
-  }, [scale, pageDimensions, pageNumber, updateSnip, addTextBox]);
+    },
+    [scale, pageDimensions, pageNumber, updateSnip, addTextBox],
+  );
 
   // Keyboard handler for moving/resizing selections
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!selectedSnipId) return;
 
-      const snip = snips.find(s => s.id === selectedSnipId);
+      const snip = snips.find((s) => s.id === selectedSnipId);
       if (!snip || !snip.browserRect) return;
 
       const moveStep = 5; // pixels
@@ -92,19 +114,19 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       if (e.shiftKey) {
         // Shift + Arrow: Resize
         switch (e.key) {
-          case 'ArrowUp':
+          case "ArrowUp":
             newRect.height = Math.max(10, newRect.height - resizeStep);
             changed = true;
             break;
-          case 'ArrowDown':
+          case "ArrowDown":
             newRect.height = newRect.height + resizeStep;
             changed = true;
             break;
-          case 'ArrowLeft':
+          case "ArrowLeft":
             newRect.width = Math.max(10, newRect.width - resizeStep);
             changed = true;
             break;
-          case 'ArrowRight':
+          case "ArrowRight":
             newRect.width = newRect.width + resizeStep;
             changed = true;
             break;
@@ -114,19 +136,19 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       } else {
         // Arrow: Move
         switch (e.key) {
-          case 'ArrowUp':
+          case "ArrowUp":
             newRect.y = Math.max(0, newRect.y - moveStep);
             changed = true;
             break;
-          case 'ArrowDown':
+          case "ArrowDown":
             newRect.y = newRect.y + moveStep;
             changed = true;
             break;
-          case 'ArrowLeft':
+          case "ArrowLeft":
             newRect.x = Math.max(0, newRect.x - moveStep);
             changed = true;
             break;
-          case 'ArrowRight':
+          case "ArrowRight":
             newRect.x = newRect.x + moveStep;
             changed = true;
             break;
@@ -148,22 +170,25 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
           resendOCRRequest({ ...snip, browserRect: newRect });
         }, 500);
 
-        const action = e.shiftKey ? 'resized' : 'moved';
-        announceToScreenReader(`Selection ${action} using arrow keys`, 'status');
+        const action = e.shiftKey ? "resized" : "moved";
+        announceToScreenReader(
+          `Selection ${action} using arrow keys`,
+          "status",
+        );
       }
 
       // Delete key: Delete selected snip
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         deleteSnip(selectedSnipId);
         setSelectedSnipId(null);
-        announceToScreenReader('Selection deleted', 'status');
+        announceToScreenReader("Selection deleted", "status");
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
       if (window.resizeOCRTimeout) {
         clearTimeout(window.resizeOCRTimeout);
       }
@@ -171,36 +196,50 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
   }, [selectedSnipId, snips, updateSnip, deleteSnip, resendOCRRequest]);
 
   // Helper: Get handle at position (returns { snipId, handle } or null)
-  const getHandleAtPosition = useCallback((x, y) => {
-    const currentPageSnips = snips.filter(s => s.pageNumber === pageNumber && s.browserRect);
+  const getHandleAtPosition = useCallback(
+    (x, y) => {
+      const currentPageSnips = snips.filter(
+        (s) => s.pageNumber === pageNumber && s.browserRect,
+      );
 
-    for (const snip of currentPageSnips) {
-      const { browserRect } = snip;
-      const handleSize = 8;
-      const handles = {
-        nw: { x: browserRect.x, y: browserRect.y },
-        ne: { x: browserRect.x + browserRect.width, y: browserRect.y },
-        sw: { x: browserRect.x, y: browserRect.y + browserRect.height },
-        se: { x: browserRect.x + browserRect.width, y: browserRect.y + browserRect.height },
-        n: { x: browserRect.x + browserRect.width / 2, y: browserRect.y },
-        s: { x: browserRect.x + browserRect.width / 2, y: browserRect.y + browserRect.height },
-        w: { x: browserRect.x, y: browserRect.y + browserRect.height / 2 },
-        e: { x: browserRect.x + browserRect.width, y: browserRect.y + browserRect.height / 2 },
-      };
+      for (const snip of currentPageSnips) {
+        const { browserRect } = snip;
+        const handleSize = 8;
+        const handles = {
+          nw: { x: browserRect.x, y: browserRect.y },
+          ne: { x: browserRect.x + browserRect.width, y: browserRect.y },
+          sw: { x: browserRect.x, y: browserRect.y + browserRect.height },
+          se: {
+            x: browserRect.x + browserRect.width,
+            y: browserRect.y + browserRect.height,
+          },
+          n: { x: browserRect.x + browserRect.width / 2, y: browserRect.y },
+          s: {
+            x: browserRect.x + browserRect.width / 2,
+            y: browserRect.y + browserRect.height,
+          },
+          w: { x: browserRect.x, y: browserRect.y + browserRect.height / 2 },
+          e: {
+            x: browserRect.x + browserRect.width,
+            y: browserRect.y + browserRect.height / 2,
+          },
+        };
 
-      for (const [handleName, handlePos] of Object.entries(handles)) {
-        if (
-          x >= handlePos.x - handleSize &&
-          x <= handlePos.x + handleSize &&
-          y >= handlePos.y - handleSize &&
-          y <= handlePos.y + handleSize
-        ) {
-          return { snipId: snip.id, handle: handleName };
+        for (const [handleName, handlePos] of Object.entries(handles)) {
+          if (
+            x >= handlePos.x - handleSize &&
+            x <= handlePos.x + handleSize &&
+            y >= handlePos.y - handleSize &&
+            y <= handlePos.y + handleSize
+          ) {
+            return { snipId: snip.id, handle: handleName };
+          }
         }
       }
-    }
-    return null;
-  }, [snips, pageNumber]);
+      return null;
+    },
+    [snips, pageNumber],
+  );
 
   // Mouse down - start drawing or resizing
   const handleMouseDown = (e) => {
@@ -231,7 +270,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 
     // Handle resizing
     if (resizing) {
-      const snip = snips.find(s => s.id === resizing.snipId);
+      const snip = snips.find((s) => s.id === resizing.snipId);
       if (!snip || !snip.browserRect) return;
 
       const { browserRect } = snip;
@@ -239,7 +278,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 
       // Calculate new dimensions based on handle
       switch (resizing.handle) {
-        case 'nw':
+        case "nw":
           newRect = {
             x: currentX,
             y: currentY,
@@ -247,7 +286,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: browserRect.y + browserRect.height - currentY,
           };
           break;
-        case 'ne':
+        case "ne":
           newRect = {
             x: browserRect.x,
             y: currentY,
@@ -255,7 +294,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: browserRect.y + browserRect.height - currentY,
           };
           break;
-        case 'sw':
+        case "sw":
           newRect = {
             x: currentX,
             y: browserRect.y,
@@ -263,7 +302,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: currentY - browserRect.y,
           };
           break;
-        case 'se':
+        case "se":
           newRect = {
             x: browserRect.x,
             y: browserRect.y,
@@ -271,7 +310,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: currentY - browserRect.y,
           };
           break;
-        case 'n':
+        case "n":
           newRect = {
             x: browserRect.x,
             y: currentY,
@@ -279,7 +318,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: browserRect.y + browserRect.height - currentY,
           };
           break;
-        case 's':
+        case "s":
           newRect = {
             x: browserRect.x,
             y: browserRect.y,
@@ -287,7 +326,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: currentY - browserRect.y,
           };
           break;
-        case 'w':
+        case "w":
           newRect = {
             x: currentX,
             y: browserRect.y,
@@ -295,7 +334,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             height: browserRect.height,
           };
           break;
-        case 'e':
+        case "e":
           newRect = {
             x: browserRect.x,
             y: browserRect.y,
@@ -343,7 +382,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
   const handleMouseUp = () => {
     // Handle resizing completion
     if (resizing) {
-      const snip = snips.find(s => s.id === resizing.snipId);
+      const snip = snips.find((s) => s.id === resizing.snipId);
       if (snip && snip.browserRect) {
         // Re-send OCR request with new coordinates
         resendOCRRequest(snip);
@@ -352,7 +391,12 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       return;
     }
 
-    if (!isDrawing || !currentRect || currentRect.width < 10 || currentRect.height < 10) {
+    if (
+      !isDrawing ||
+      !currentRect ||
+      currentRect.width < 10 ||
+      currentRect.height < 10
+    ) {
       // Ignore very small selections (likely accidental clicks)
       setIsDrawing(false);
       setStartPoint(null);
@@ -364,7 +408,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
     const normalizedCoords = convertToNormalizedPDFCoords(
       currentRect,
       scale,
-      pageDimensions
+      pageDimensions,
     );
 
     const snipId = crypto.randomUUID();
@@ -375,14 +419,17 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       pageNumber,
       rect: normalizedCoords,
       browserRect: currentRect, // Keep for visual feedback
-      status: 'pending', // Will change to 'processing' → 'success'/'error'
+      status: "pending", // Will change to 'processing' → 'success'/'error'
       createdAt: Date.now(),
     };
 
     addSnip(newSnip);
 
     // Announce to screen reader
-    announceToScreenReader(`Snip created on page ${pageNumber}. Processing OCR...`, 'status');
+    announceToScreenReader(
+      `Snip created on page ${pageNumber}. Processing OCR...`,
+      "status",
+    );
 
     // Enqueue OCR request (non-blocking, FIFO queue with max 50 requests)
     const requestId = ocrQueue.enqueue(
@@ -392,12 +439,12 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       },
       // Success callback
       (extractedText) => {
-        updateSnip(snipId, { status: 'success' });
+        updateSnip(snipId, { status: "success" });
 
         // Create new text box with extracted text
         const textBox = {
           id: crypto.randomUUID(),
-          text: extractedText || '', // Handle empty text case
+          text: extractedText || "", // Handle empty text case
           pageNumber,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
@@ -407,30 +454,45 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 
         // Announce success
         if (extractedText) {
-          announceToScreenReader(`OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`, 'status');
+          announceToScreenReader(
+            `OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`,
+            "status",
+          );
         } else {
-          announceToScreenReader('OCR complete. No text detected in this region.', 'status');
+          announceToScreenReader(
+            "OCR complete. No text detected in this region.",
+            "status",
+          );
         }
       },
       // Error callback
       (error) => {
-        updateSnip(snipId, { status: 'error', error: error.message });
-        announceToScreenReader(`OCR failed: ${error.message}`, 'error');
+        updateSnip(snipId, { status: "error", error: error.message });
+        announceToScreenReader(`OCR failed: ${error.message}`, "error");
       },
       // Timeout callback
       () => {
-        updateSnip(snipId, { status: 'error', error: 'Request timed out' });
-        announceToScreenReader('OCR request timed out after 30 seconds', 'error');
-      }
+        updateSnip(snipId, { status: "error", error: "Request timed out" });
+        announceToScreenReader(
+          "OCR request timed out after 30 seconds",
+          "error",
+        );
+      },
     );
 
     if (!requestId) {
       // Queue is full (more than 50 pending requests)
-      updateSnip(snipId, { status: 'error', error: 'Too many pending requests' });
-      announceToScreenReader('Too many pending OCR requests. Please wait for current requests to complete.', 'error');
+      updateSnip(snipId, {
+        status: "error",
+        error: "Too many pending requests",
+      });
+      announceToScreenReader(
+        "Too many pending OCR requests. Please wait for current requests to complete.",
+        "error",
+      );
     } else {
       // Update snip to processing status
-      updateSnip(snipId, { status: 'processing' });
+      updateSnip(snipId, { status: "processing" });
     }
 
     // Reset drawing state
@@ -468,7 +530,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
           <div key={snip.id}>
             {/* Snip rectangle */}
             <div
-              className={`${styles.snipRect} ${snip.id === selectedSnipId ? styles.selected : ''} ${snip.status === 'processing' ? styles.processing : ''}`}
+              className={`${styles.snipRect} ${snip.id === selectedSnipId ? styles.selected : ""} ${snip.status === "processing" ? styles.processing : ""}`}
               style={{
                 left: `${snip.browserRect.x}px`,
                 top: `${snip.browserRect.y}px`,
@@ -476,9 +538,9 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
                 height: `${snip.browserRect.height}px`,
               }}
               onClick={() => setSelectedSnipId(snip.id)}
-              aria-label={`Selection ${snip.status === 'processing' ? 'processing' : 'completed'}`}
+              aria-label={`Selection ${snip.status === "processing" ? "processing" : "completed"}`}
             >
-              {snip.status === 'processing' && (
+              {snip.status === "processing" && (
                 <div className={styles.spinner} />
               )}
             </div>
@@ -496,7 +558,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
                 if (selectedSnipId === snip.id) {
                   setSelectedSnipId(null);
                 }
-                announceToScreenReader('Selection deleted', 'status');
+                announceToScreenReader("Selection deleted", "status");
               }}
               aria-label="Delete selection"
               title="Delete selection (or press Delete key)"
@@ -511,7 +573,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x - 4}px`,
                 top: `${snip.browserRect.y - 4}px`,
-                cursor: 'nw-resize',
+                cursor: "nw-resize",
               }}
             />
             <div
@@ -520,7 +582,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x + snip.browserRect.width - 4}px`,
                 top: `${snip.browserRect.y - 4}px`,
-                cursor: 'ne-resize',
+                cursor: "ne-resize",
               }}
             />
             <div
@@ -529,7 +591,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x - 4}px`,
                 top: `${snip.browserRect.y + snip.browserRect.height - 4}px`,
-                cursor: 'sw-resize',
+                cursor: "sw-resize",
               }}
             />
             <div
@@ -538,7 +600,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x + snip.browserRect.width - 4}px`,
                 top: `${snip.browserRect.y + snip.browserRect.height - 4}px`,
-                cursor: 'se-resize',
+                cursor: "se-resize",
               }}
             />
             <div
@@ -547,7 +609,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x + snip.browserRect.width / 2 - 4}px`,
                 top: `${snip.browserRect.y - 4}px`,
-                cursor: 'n-resize',
+                cursor: "n-resize",
               }}
             />
             <div
@@ -556,7 +618,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x + snip.browserRect.width / 2 - 4}px`,
                 top: `${snip.browserRect.y + snip.browserRect.height - 4}px`,
-                cursor: 's-resize',
+                cursor: "s-resize",
               }}
             />
             <div
@@ -565,7 +627,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x - 4}px`,
                 top: `${snip.browserRect.y + snip.browserRect.height / 2 - 4}px`,
-                cursor: 'w-resize',
+                cursor: "w-resize",
               }}
             />
             <div
@@ -574,7 +636,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               style={{
                 left: `${snip.browserRect.x + snip.browserRect.width - 4}px`,
                 top: `${snip.browserRect.y + snip.browserRect.height / 2 - 4}px`,
-                cursor: 'e-resize',
+                cursor: "e-resize",
               }}
             />
           </div>
@@ -584,13 +646,14 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 }
 
 // Helper function to announce messages to screen readers
-function announceToScreenReader(message, type = 'status') {
-  const elementId = type === 'error' ? 'error-announcements' : 'status-announcements';
+function announceToScreenReader(message, type = "status") {
+  const elementId =
+    type === "error" ? "error-announcements" : "status-announcements";
   const element = document.getElementById(elementId);
   if (element) {
     element.textContent = message;
     setTimeout(() => {
-      element.textContent = '';
+      element.textContent = "";
     }, 1000);
   }
 }

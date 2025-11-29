@@ -15,7 +15,7 @@ function getCSRFToken() {
   // For MVP, return empty string since we're using MSW
   // In production, implement proper CSRF token retrieval
   const metaToken = document.querySelector('meta[name="csrf-token"]');
-  return metaToken ? metaToken.getAttribute('content') : '';
+  return metaToken ? metaToken.getAttribute("content") : "";
 }
 
 /**
@@ -25,8 +25,8 @@ async function apiFetch(url, options = {}) {
   const csrfToken = getCSRFToken();
 
   const defaultHeaders = {
-    'Content-Type': 'application/json',
-    ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+    "Content-Type": "application/json",
+    ...(csrfToken && { "X-CSRF-Token": csrfToken }),
   };
 
   const config = {
@@ -35,7 +35,7 @@ async function apiFetch(url, options = {}) {
       ...defaultHeaders,
       ...options.headers,
     },
-    credentials: 'same-origin', // Include cookies for HTTPS/SameSite
+    credentials: "same-origin", // Include cookies for HTTPS/SameSite
   };
 
   try {
@@ -56,14 +56,16 @@ async function apiFetch(url, options = {}) {
  * @throws {Error} If request fails
  */
 export async function extractText(snipData) {
-  const response = await apiFetch('/api/snip-crop', {
-    method: 'POST',
+  const response = await apiFetch("/api/snip-crop", {
+    method: "POST",
     body: JSON.stringify(snipData),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `OCR request failed: ${response.status}`);
+    throw new Error(
+      errorData.error || `OCR request failed: ${response.status}`,
+    );
   }
 
   return response.json();
@@ -78,18 +80,18 @@ export async function extractText(snipData) {
  */
 export async function summarizeTexts(texts) {
   if (!Array.isArray(texts) || texts.length === 0) {
-    throw new Error('texts must be a non-empty array');
+    throw new Error("texts must be a non-empty array");
   }
 
-  const response = await apiFetch('/api/summarize', {
-    method: 'POST',
+  const response = await apiFetch("/api/summarize", {
+    method: "POST",
     body: JSON.stringify({ texts }),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.error || `Summarization request failed: ${response.status}`
+      errorData.error || `Summarization request failed: ${response.status}`,
     );
   }
 
@@ -101,8 +103,8 @@ export async function summarizeTexts(texts) {
  */
 export async function healthCheck() {
   try {
-    const response = await apiFetch('/api/health', {
-      method: 'GET',
+    const response = await apiFetch("/api/health", {
+      method: "GET",
     });
     return response.ok;
   } catch {

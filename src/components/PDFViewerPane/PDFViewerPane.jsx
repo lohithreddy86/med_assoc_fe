@@ -1,25 +1,33 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Box, IconButton, Typography, ButtonGroup, Button, Tooltip } from '@mui/material';
+import { useState, useEffect, useCallback } from "react";
+import {
+  Box,
+  IconButton,
+  Typography,
+  ButtonGroup,
+  Button,
+  Tooltip,
+} from "@mui/material";
 import {
   ZoomIn,
   ZoomOut,
   FitScreen,
   ChevronLeft,
   ChevronRight,
-} from '@mui/icons-material';
-import { Viewer, Worker, SpecialZoomLevel } from '@react-pdf-viewer/core';
-import { thumbnailPlugin } from '@react-pdf-viewer/thumbnail';
-import { zoomPlugin } from '@react-pdf-viewer/zoom';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import '@react-pdf-viewer/thumbnail/lib/styles/index.css';
-import '@react-pdf-viewer/zoom/lib/styles/index.css';
-import * as pdfjsLib from 'pdfjs-dist';
-import { useAppContext } from '../../contexts/AppContext';
-import { extractPageDimensions } from '../../utils/coordinates';
-import { SnipOverlay } from '../SnipOverlay/SnipOverlay';
+} from "@mui/icons-material";
+import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import { thumbnailPlugin } from "@react-pdf-viewer/thumbnail";
+import { zoomPlugin } from "@react-pdf-viewer/zoom";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/thumbnail/lib/styles/index.css";
+import "@react-pdf-viewer/zoom/lib/styles/index.css";
+import * as pdfjsLib from "pdfjs-dist";
+import { useAppContext } from "../../contexts/AppContext";
+import { extractPageDimensions } from "../../utils/coordinates";
+import { SnipOverlay } from "../SnipOverlay/SnipOverlay";
 
 // PDF.js worker URL (T027) - Must match pdfjs-dist version
-const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const PDFJS_WORKER_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 // Configure PDF.js worker (same as PDFUploader)
 pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
@@ -28,7 +36,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
 const ZOOM_LEVELS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0];
 
 export function PDFViewerPane() {
-  const { pdfDocument, pdfMetadata, currentPage, setCurrentPage } = useAppContext();
+  const { pdfDocument, pdfMetadata, currentPage, setCurrentPage } =
+    useAppContext();
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [zoomLevelIndex, setZoomLevelIndex] = useState(2); // Start at 100%
   const [pageDimensions, setPageDimensions] = useState(null);
@@ -52,11 +61,14 @@ export function PDFViewerPane() {
           setPageDimensions(dimensions);
           announceToScreenReader(
             `PDF loaded with ${pdfMetadata.pageCount} pages. Page dimensions: ${Math.round(dimensions.width)} by ${Math.round(dimensions.height)} points.`,
-            'status'
+            "status",
           );
         })
         .catch((err) => {
-          announceToScreenReader(`Failed to extract page dimensions: ${err.message}`, 'error');
+          announceToScreenReader(
+            `Failed to extract page dimensions: ${err.message}`,
+            "error",
+          );
         });
     }
   }, [pdfDocument, pdfMetadata, currentPage]);
@@ -69,7 +81,10 @@ export function PDFViewerPane() {
       setZoomLevelIndex(newIndex);
       setZoomLevel(newZoom);
       zoomTo(newZoom);
-      announceToScreenReader(`Zoomed in to ${Math.round(newZoom * 100)}%`, 'status');
+      announceToScreenReader(
+        `Zoomed in to ${Math.round(newZoom * 100)}%`,
+        "status",
+      );
     }
   }, [zoomLevelIndex, zoomTo]);
 
@@ -81,34 +96,43 @@ export function PDFViewerPane() {
       setZoomLevelIndex(newIndex);
       setZoomLevel(newZoom);
       zoomTo(newZoom);
-      announceToScreenReader(`Zoomed out to ${Math.round(newZoom * 100)}%`, 'status');
+      announceToScreenReader(
+        `Zoomed out to ${Math.round(newZoom * 100)}%`,
+        "status",
+      );
     }
   }, [zoomLevelIndex, zoomTo]);
 
   // Fit to width handler
   const handleFitToWidth = useCallback(() => {
     zoomTo(SpecialZoomLevel.PageWidth);
-    announceToScreenReader('Fit to width', 'status');
+    announceToScreenReader("Fit to width", "status");
   }, [zoomTo]);
 
   // Fit to page handler
   const handleFitToPage = useCallback(() => {
     zoomTo(SpecialZoomLevel.PageFit);
-    announceToScreenReader('Fit to page', 'status');
+    announceToScreenReader("Fit to page", "status");
   }, [zoomTo]);
 
   // Page navigation handlers (T029)
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      announceToScreenReader(`Page ${currentPage - 1} of ${pdfMetadata.pageCount}`, 'status');
+      announceToScreenReader(
+        `Page ${currentPage - 1} of ${pdfMetadata.pageCount}`,
+        "status",
+      );
     }
   }, [currentPage, pdfMetadata, setCurrentPage]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < pdfMetadata.pageCount) {
       setCurrentPage(currentPage + 1);
-      announceToScreenReader(`Page ${currentPage + 1} of ${pdfMetadata.pageCount}`, 'status');
+      announceToScreenReader(
+        `Page ${currentPage + 1} of ${pdfMetadata.pageCount}`,
+        "status",
+      );
     }
   }, [currentPage, pdfMetadata, setCurrentPage]);
 
@@ -116,18 +140,18 @@ export function PDFViewerPane() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Page Up/Down for page navigation
-      if (e.key === 'PageUp') {
+      if (e.key === "PageUp") {
         e.preventDefault();
         handlePreviousPage();
-      } else if (e.key === 'PageDown') {
+      } else if (e.key === "PageDown") {
         e.preventDefault();
         handleNextPage();
       }
       // Arrow keys for panning are handled by the PDF viewer
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handlePreviousPage, handleNextPage]);
 
   if (!pdfDocument || !pdfMetadata) {
@@ -138,11 +162,11 @@ export function PDFViewerPane() {
     <Worker workerUrl={PDFJS_WORKER_URL}>
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          height: '100%',
-          width: '100%',
-          overflow: 'hidden',
+          display: "flex",
+          flexDirection: "row",
+          height: "100%",
+          width: "100%",
+          overflow: "hidden",
         }}
       >
         {/* Thumbnail sidebar (T032) */}
@@ -150,9 +174,9 @@ export function PDFViewerPane() {
           sx={{
             width: 200,
             borderRight: 1,
-            borderColor: 'divider',
-            overflowY: 'auto',
-            backgroundColor: 'background.default',
+            borderColor: "divider",
+            overflowY: "auto",
+            backgroundColor: "background.default",
           }}
           role="navigation"
           aria-label="Page thumbnails"
@@ -164,27 +188,27 @@ export function PDFViewerPane() {
         <Box
           sx={{
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
           {/* Toolbar */}
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
               padding: 1,
               borderBottom: 1,
-              borderColor: 'divider',
-              backgroundColor: 'background.paper',
+              borderColor: "divider",
+              backgroundColor: "background.paper",
             }}
             role="toolbar"
             aria-label="PDF viewer controls"
           >
             {/* Page navigation */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Tooltip title="Previous page (Page Up)">
                 <IconButton
                   onClick={handlePreviousPage}
@@ -196,7 +220,10 @@ export function PDFViewerPane() {
                 </IconButton>
               </Tooltip>
 
-              <Typography variant="body2" sx={{ minWidth: 100, textAlign: 'center' }}>
+              <Typography
+                variant="body2"
+                sx={{ minWidth: 100, textAlign: "center" }}
+              >
                 Page {currentPage} of {pdfMetadata.pageCount}
               </Typography>
 
@@ -213,7 +240,7 @@ export function PDFViewerPane() {
             </Box>
 
             {/* Zoom controls */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <ButtonGroup size="small" variant="outlined">
                 <Tooltip title="Zoom out">
                   <Button
@@ -241,13 +268,21 @@ export function PDFViewerPane() {
               </ButtonGroup>
 
               <Tooltip title="Fit to width">
-                <IconButton onClick={handleFitToWidth} aria-label="Fit to width" size="small">
+                <IconButton
+                  onClick={handleFitToWidth}
+                  aria-label="Fit to width"
+                  size="small"
+                >
                   <FitScreen />
                 </IconButton>
               </Tooltip>
 
               <Tooltip title="Fit to page">
-                <Button onClick={handleFitToPage} size="small" variant="outlined">
+                <Button
+                  onClick={handleFitToPage}
+                  size="small"
+                  variant="outlined"
+                >
                   Fit
                 </Button>
               </Tooltip>
@@ -258,9 +293,9 @@ export function PDFViewerPane() {
           <Box
             sx={{
               flex: 1,
-              overflow: 'auto',
-              backgroundColor: 'grey.200',
-              position: 'relative',
+              overflow: "auto",
+              backgroundColor: "grey.200",
+              position: "relative",
             }}
           >
             <Viewer
@@ -284,13 +319,14 @@ export function PDFViewerPane() {
 }
 
 // Helper function to announce messages to screen readers
-function announceToScreenReader(message, type = 'status') {
-  const elementId = type === 'error' ? 'error-announcements' : 'status-announcements';
+function announceToScreenReader(message, type = "status") {
+  const elementId =
+    type === "error" ? "error-announcements" : "status-announcements";
   const element = document.getElementById(elementId);
   if (element) {
     element.textContent = message;
     setTimeout(() => {
-      element.textContent = '';
+      element.textContent = "";
     }, 1000);
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 /**
  * useUndo - Comprehensive undo/redo hook using command pattern
@@ -29,7 +29,7 @@ export function useUndo(initialState) {
     (newState) => {
       setStateInternal((prevState) => {
         const nextState =
-          typeof newState === 'function' ? newState(prevState) : newState;
+          typeof newState === "function" ? newState(prevState) : newState;
 
         setHistory((prevHistory) => {
           // Remove any future history if we're not at the end
@@ -53,7 +53,7 @@ export function useUndo(initialState) {
         return nextState;
       });
     },
-    [currentIndex]
+    [currentIndex],
   );
 
   /**

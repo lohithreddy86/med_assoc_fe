@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
-import { Box, Button, Typography, Alert } from '@mui/material';
-import { CloudUpload } from '@mui/icons-material';
-import { PDFDocument } from 'pdf-lib';
-import { useAppContext } from '../../contexts/AppContext';
-import * as pdfjsLib from 'pdfjs-dist';
+import { useState, useRef } from "react";
+import { Box, Button, Typography, Alert } from "@mui/material";
+import { CloudUpload } from "@mui/icons-material";
+import { PDFDocument } from "pdf-lib";
+import { useAppContext } from "../../contexts/AppContext";
+import * as pdfjsLib from "pdfjs-dist";
 
 // Configure PDF.js worker - Must match pdfjs-dist version
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
@@ -19,13 +19,13 @@ export function PDFUploader() {
 
   const validateFile = (file) => {
     // FR-002: Validate MIME type
-    if (file.type !== 'application/pdf') {
-      throw new Error('Unsupported file type. Please upload a PDF');
+    if (file.type !== "application/pdf") {
+      throw new Error("Unsupported file type. Please upload a PDF");
     }
 
     // FR-003: Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      throw new Error('File exceeds 10 MB limit');
+      throw new Error("File exceeds 10 MB limit");
     }
 
     return true;
@@ -45,22 +45,22 @@ export function PDFUploader() {
       for (const field of fields) {
         const actions = field.acroField.getActions();
         if (actions) {
-          throw new Error('File contains potentially unsafe content');
+          throw new Error("File contains potentially unsafe content");
         }
       }
 
       // Check catalog for JavaScript
       const catalog = pdfDoc.context.lookup(pdfDoc.context.trailerInfo.Root);
-      if (catalog.has('Names')) {
-        const names = catalog.get('Names');
-        if (names && names.has('JavaScript')) {
-          throw new Error('File contains potentially unsafe content');
+      if (catalog.has("Names")) {
+        const names = catalog.get("Names");
+        if (names && names.has("JavaScript")) {
+          throw new Error("File contains potentially unsafe content");
         }
       }
 
       return true;
     } catch (err) {
-      if (err.message === 'File contains potentially unsafe content') {
+      if (err.message === "File contains potentially unsafe content") {
         throw err;
       }
       // If validation fails for other reasons, allow the file
@@ -89,7 +89,7 @@ export function PDFUploader() {
 
       // Create a Blob URL for the PDF
       // This allows the file to be loaded multiple times without ArrayBuffer detachment issues
-      const blob = new Blob([file], { type: 'application/pdf' });
+      const blob = new Blob([file], { type: "application/pdf" });
       const pdfUrl = URL.createObjectURL(blob);
 
       // Store PDF document URL and metadata in context
@@ -103,11 +103,13 @@ export function PDFUploader() {
       setPDFDocument(pdfUrl, metadata);
 
       // Announce success to screen readers
-      announceToScreenReader(`PDF loaded successfully. ${pdfDoc.numPages} pages.`, 'status');
-
+      announceToScreenReader(
+        `PDF loaded successfully. ${pdfDoc.numPages} pages.`,
+        "status",
+      );
     } catch (err) {
       setError(err.message);
-      announceToScreenReader(`Error: ${err.message}`, 'error');
+      announceToScreenReader(`Error: ${err.message}`, "error");
     } finally {
       setLoading(false);
     }
@@ -147,7 +149,7 @@ export function PDFUploader() {
 
   const handleKeyDown = (e) => {
     // FR-040: Keyboard accessibility - Enter or Space activates file dialog
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleButtonClick();
     }
@@ -156,10 +158,10 @@ export function PDFUploader() {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         gap: 2,
         padding: 4,
       }}
@@ -169,7 +171,11 @@ export function PDFUploader() {
       </Typography>
 
       {error && (
-        <Alert severity="error" onClose={() => setError(null)} sx={{ width: '100%', maxWidth: 600 }}>
+        <Alert
+          severity="error"
+          onClose={() => setError(null)}
+          sx={{ width: "100%", maxWidth: 600 }}
+        >
           {error}
         </Alert>
       )}
@@ -183,36 +189,36 @@ export function PDFUploader() {
         role="button"
         aria-label="Drop zone for PDF upload. Press Enter or Space to select a file."
         sx={{
-          width: '100%',
+          width: "100%",
           maxWidth: 600,
           minHeight: 200,
-          border: dragActive ? '2px dashed' : '2px dashed',
-          borderColor: dragActive ? 'primary.main' : 'grey.400',
+          border: dragActive ? "2px dashed" : "2px dashed",
+          borderColor: dragActive ? "primary.main" : "grey.400",
           borderRadius: 2,
-          backgroundColor: dragActive ? 'action.hover' : 'background.paper',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          backgroundColor: dragActive ? "action.hover" : "background.paper",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           gap: 2,
           padding: 3,
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          '&:hover': {
-            borderColor: 'primary.main',
-            backgroundColor: 'action.hover',
+          cursor: "pointer",
+          transition: "all 0.2s",
+          "&:hover": {
+            borderColor: "primary.main",
+            backgroundColor: "action.hover",
           },
-          '&:focus': {
-            outline: '2px solid',
-            outlineColor: 'primary.main',
+          "&:focus": {
+            outline: "2px solid",
+            outlineColor: "primary.main",
             outlineOffset: 2,
           },
         }}
         onClick={handleButtonClick}
       >
-        <CloudUpload sx={{ fontSize: 64, color: 'primary.main' }} />
+        <CloudUpload sx={{ fontSize: 64, color: "primary.main" }} />
         <Typography variant="h6" align="center">
-          {loading ? 'Loading PDF...' : 'Drag and drop PDF here'}
+          {loading ? "Loading PDF..." : "Drag and drop PDF here"}
         </Typography>
         <Typography variant="body2" color="text.secondary" align="center">
           or click to select a file (max 10 MB)
@@ -224,7 +230,7 @@ export function PDFUploader() {
         type="file"
         accept="application/pdf"
         onChange={handleFileInputChange}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         aria-label="File input for PDF upload"
       />
 
@@ -235,21 +241,22 @@ export function PDFUploader() {
         startIcon={<CloudUpload />}
         sx={{ minWidth: 200 }}
       >
-        {loading ? 'Loading...' : 'Select PDF File'}
+        {loading ? "Loading..." : "Select PDF File"}
       </Button>
     </Box>
   );
 }
 
 // Helper function to announce messages to screen readers
-function announceToScreenReader(message, type = 'status') {
-  const elementId = type === 'error' ? 'error-announcements' : 'status-announcements';
+function announceToScreenReader(message, type = "status") {
+  const elementId =
+    type === "error" ? "error-announcements" : "status-announcements";
   const element = document.getElementById(elementId);
   if (element) {
     element.textContent = message;
     // Clear after announcement
     setTimeout(() => {
-      element.textContent = '';
+      element.textContent = "";
     }, 1000);
   }
 }

@@ -29,7 +29,9 @@
   background-color: #fff;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .textBoxItem:hover {

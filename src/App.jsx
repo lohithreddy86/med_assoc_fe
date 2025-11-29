@@ -1,14 +1,14 @@
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Box, IconButton, Tooltip, Alert, Collapse } from '@mui/material';
-import { Contrast, Close } from '@mui/icons-material';
-import { AppProvider, useAppContext } from './contexts/AppContext';
-import { lightTheme, highContrastTheme } from './theme';
-import { PDFUploader } from './components/PDFUploader/PDFUploader';
-import { PDFViewerPane } from './components/PDFViewerPane/PDFViewerPane';
-import { SnipList } from './components/SnipList/SnipList';
-import { SummarizePanel } from './components/SummarizePanel/SummarizePanel';
-import { useEffect, useState } from 'react';
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { Box, IconButton, Tooltip, Alert, Collapse } from "@mui/material";
+import { Contrast, Close } from "@mui/icons-material";
+import { AppProvider, useAppContext } from "./contexts/AppContext";
+import { lightTheme, highContrastTheme } from "./theme";
+import { PDFUploader } from "./components/PDFUploader/PDFUploader";
+import { PDFViewerPane } from "./components/PDFViewerPane/PDFViewerPane";
+import { SnipList } from "./components/SnipList/SnipList";
+import { SummarizePanel } from "./components/SummarizePanel/SummarizePanel";
+import { useEffect, useState } from "react";
 
 function AppLayout() {
   const { pdfDocument } = useAppContext();
@@ -18,8 +18,8 @@ function AppLayout() {
       <Box
         sx={{
           flex: 1,
-          display: 'flex',
-          overflow: 'hidden',
+          display: "flex",
+          overflow: "hidden",
         }}
       >
         <PDFUploader />
@@ -31,17 +31,17 @@ function AppLayout() {
     <Box
       sx={{
         flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       {/* Top section: PDF viewer and snip list */}
       <Box
         sx={{
           flex: 1,
-          display: 'flex',
-          overflow: 'hidden',
+          display: "flex",
+          overflow: "hidden",
           minHeight: 0,
         }}
       >
@@ -61,7 +61,7 @@ function AppLayout() {
         sx={{
           height: 250,
           flexShrink: 0,
-          borderTop: '1px solid #e0e0e0',
+          borderTop: "1px solid #e0e0e0",
         }}
       >
         <SummarizePanel />
@@ -85,21 +85,23 @@ function AppContent() {
   } = useAppContext();
 
   // State for dismissible warnings
-  const [showNoPersistenceWarning, setShowNoPersistenceWarning] = useState(() => {
-    // Only show on first load if not previously dismissed
-    return !sessionStorage.getItem('noPersistenceWarningDismissed');
-  });
+  const [showNoPersistenceWarning, setShowNoPersistenceWarning] = useState(
+    () => {
+      // Only show on first load if not previously dismissed
+      return !sessionStorage.getItem("noPersistenceWarningDismissed");
+    },
+  );
   const [showAuthWarning, setShowAuthWarning] = useState(() => {
-    return !sessionStorage.getItem('authWarningDismissed');
+    return !sessionStorage.getItem("authWarningDismissed");
   });
 
   const handleDismissNoPersistenceWarning = () => {
-    sessionStorage.setItem('noPersistenceWarningDismissed', 'true');
+    sessionStorage.setItem("noPersistenceWarningDismissed", "true");
     setShowNoPersistenceWarning(false);
   };
 
   const handleDismissAuthWarning = () => {
-    sessionStorage.setItem('authWarningDismissed', 'true');
+    sessionStorage.setItem("authWarningDismissed", "true");
     setShowAuthWarning(false);
   };
 
@@ -107,7 +109,7 @@ function AppContent() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Ctrl+Z: Undo
-      if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+      if (e.ctrlKey && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         if (canUndo) {
           undo();
@@ -115,7 +117,7 @@ function AppContent() {
       }
 
       // Ctrl+Y: Redo
-      if (e.ctrlKey && e.key === 'y') {
+      if (e.ctrlKey && e.key === "y") {
         e.preventDefault();
         if (canRedo) {
           redo();
@@ -123,11 +125,11 @@ function AppContent() {
       }
 
       // Ctrl+N: Insert new text box
-      if (e.ctrlKey && e.key === 'n') {
+      if (e.ctrlKey && e.key === "n") {
         e.preventDefault();
         const newBox = {
           id: crypto.randomUUID(),
-          text: '',
+          text: "",
           pageNumber: null,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
@@ -136,52 +138,71 @@ function AppContent() {
       }
 
       // Delete: Remove focused text box
-      if (e.key === 'Delete' && focusedBoxId) {
+      if (e.key === "Delete" && focusedBoxId) {
         // Only if not inside an input/textarea
-        if (!['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+        if (!["INPUT", "TEXTAREA"].includes(e.target.tagName)) {
           e.preventDefault();
           deleteTextBox(focusedBoxId);
         }
       }
 
       // Shift+M: Merge text boxes
-      if (e.shiftKey && e.key === 'M' && focusedBoxId) {
+      if (e.shiftKey && e.key === "M" && focusedBoxId) {
         e.preventDefault();
         mergeTextBoxes(focusedBoxId);
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, canUndo, canRedo, insertTextBox, deleteTextBox, mergeTextBoxes, focusedBoxId]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    insertTextBox,
+    deleteTextBox,
+    mergeTextBoxes,
+    focusedBoxId,
+  ]);
 
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
       }}
     >
       {/* Toolbar with accessibility toggle */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: '8px 16px',
-          borderBottom: '1px solid #e0e0e0',
-          backgroundColor: '#fafafa',
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          padding: "8px 16px",
+          borderBottom: "1px solid #e0e0e0",
+          backgroundColor: "#fafafa",
           flexShrink: 0,
         }}
       >
-        <Tooltip title={highContrastMode ? 'Disable high contrast mode' : 'Enable high contrast mode'}>
+        <Tooltip
+          title={
+            highContrastMode
+              ? "Disable high contrast mode"
+              : "Enable high contrast mode"
+          }
+        >
           <IconButton
             onClick={() => setHighContrastMode(!highContrastMode)}
-            aria-label={highContrastMode ? 'Disable high contrast mode' : 'Enable high contrast mode'}
+            aria-label={
+              highContrastMode
+                ? "Disable high contrast mode"
+                : "Enable high contrast mode"
+            }
             sx={{
-              color: highContrastMode ? '#000' : '#1976d2',
+              color: highContrastMode ? "#000" : "#1976d2",
             }}
           >
             <Contrast />
@@ -196,7 +217,8 @@ function AppContent() {
           onClose={handleDismissNoPersistenceWarning}
           sx={{ borderRadius: 0 }}
         >
-          <strong>No Data Persistence:</strong> All data is lost on browser close or refresh. Do not use for permanent records.
+          <strong>No Data Persistence:</strong> All data is lost on browser
+          close or refresh. Do not use for permanent records.
         </Alert>
       </Collapse>
 
@@ -206,7 +228,9 @@ function AppContent() {
           onClose={handleDismissAuthWarning}
           sx={{ borderRadius: 0 }}
         >
-          <strong>Authentication Notice:</strong> This application has no authentication. Do not use with sensitive data without proper access controls.
+          <strong>Authentication Notice:</strong> This application has no
+          authentication. Do not use with sensitive data without proper access
+          controls.
         </Alert>
       </Collapse>
 
@@ -217,11 +241,11 @@ function AppContent() {
         aria-atomic="true"
         id="status-announcements"
         style={{
-          position: 'absolute',
-          left: '-10000px',
-          width: '1px',
-          height: '1px',
-          overflow: 'hidden',
+          position: "absolute",
+          left: "-10000px",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
         }}
       />
       <div
@@ -230,11 +254,11 @@ function AppContent() {
         aria-atomic="true"
         id="error-announcements"
         style={{
-          position: 'absolute',
-          left: '-10000px',
-          width: '1px',
-          height: '1px',
-          overflow: 'hidden',
+          position: "absolute",
+          left: "-10000px",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
         }}
       />
 

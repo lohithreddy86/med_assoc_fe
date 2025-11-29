@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,16 +8,16 @@ import {
   Tooltip,
   Menu,
   MenuItem,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Summarize as SummarizeIcon,
   ContentCopy,
   FileDownload,
-} from '@mui/icons-material';
-import { useAppContext } from '../../contexts/AppContext';
-import { summarizeTexts } from '../../services/api';
-import { sanitizeSummary } from '../../utils/sanitize';
-import styles from './SummarizePanel.module.css';
+} from "@mui/icons-material";
+import { useAppContext } from "../../contexts/AppContext";
+import { summarizeTexts } from "../../services/api";
+import { sanitizeSummary } from "../../utils/sanitize";
+import styles from "./SummarizePanel.module.css";
 
 export function SummarizePanel() {
   const { textBoxes, summary, setSummary } = useAppContext();
@@ -35,15 +35,17 @@ export function SummarizePanel() {
 
     setIsLoading(true);
     setError(null);
-    announceToScreenReader('Summarization in progress', 'status');
+    announceToScreenReader("Summarization in progress", "status");
 
     try {
       // Collect all text from text boxes
-      const texts = textBoxes.map((box) => box.text).filter((text) => text.trim().length > 0);
+      const texts = textBoxes
+        .map((box) => box.text)
+        .filter((text) => text.trim().length > 0);
 
       if (texts.length === 0) {
-        setError('No text content to summarize');
-        announceToScreenReader('Error: No text content to summarize', 'error');
+        setError("No text content to summarize");
+        announceToScreenReader("Error: No text content to summarize", "error");
         return;
       }
 
@@ -59,11 +61,12 @@ export function SummarizePanel() {
         sourceTextCount: texts.length,
       });
 
-      announceToScreenReader('Summary generated successfully', 'status');
+      announceToScreenReader("Summary generated successfully", "status");
     } catch (err) {
-      const errorMessage = err.message || 'Failed to generate summary. Please try again.';
+      const errorMessage =
+        err.message || "Failed to generate summary. Please try again.";
       setError(errorMessage);
-      announceToScreenReader(`Error: ${errorMessage}`, 'error');
+      announceToScreenReader(`Error: ${errorMessage}`, "error");
     } finally {
       setIsLoading(false);
     }
@@ -76,12 +79,12 @@ export function SummarizePanel() {
     try {
       await navigator.clipboard.writeText(summary.text);
       setCopySuccess(true);
-      announceToScreenReader('Summary copied to clipboard', 'status');
+      announceToScreenReader("Summary copied to clipboard", "status");
 
       // Reset copy success message after 2 seconds
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
-      announceToScreenReader('Failed to copy to clipboard', 'error');
+      announceToScreenReader("Failed to copy to clipboard", "error");
     }
   };
 
@@ -98,9 +101,9 @@ export function SummarizePanel() {
   const handleExportText = () => {
     if (!summary?.text) return;
 
-    const blob = new Blob([summary.text], { type: 'text/plain' });
+    const blob = new Blob([summary.text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `summary-${Date.now()}.txt`;
     document.body.appendChild(a);
@@ -108,7 +111,7 @@ export function SummarizePanel() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    announceToScreenReader('Summary exported as text file', 'status');
+    announceToScreenReader("Summary exported as text file", "status");
     handleExportClose();
   };
 
@@ -128,10 +131,10 @@ export function SummarizePanel() {
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json',
+      type: "application/json",
     });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `summary-${Date.now()}.json`;
     document.body.appendChild(a);
@@ -139,14 +142,14 @@ export function SummarizePanel() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    announceToScreenReader('Summary exported as JSON file', 'status');
+    announceToScreenReader("Summary exported as JSON file", "status");
     handleExportClose();
   };
 
   // Keyboard shortcut handler (Ctrl+Enter)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         if (canSummarize) {
           handleSummarize();
@@ -154,16 +157,12 @@ export function SummarizePanel() {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [canSummarize, handleSummarize]);
 
   return (
-    <Box
-      className={styles.container}
-      role="region"
-      aria-label="Summary panel"
-    >
+    <Box className={styles.container} role="region" aria-label="Summary panel">
       <Box className={styles.header}>
         <Typography variant="h6" className={styles.title}>
           Summary
@@ -173,27 +172,29 @@ export function SummarizePanel() {
           <Tooltip
             title={
               textBoxes.length === 0
-                ? 'No text boxes to summarize'
-                : 'Summarize all text (Ctrl+Enter)'
+                ? "No text boxes to summarize"
+                : "Summarize all text (Ctrl+Enter)"
             }
           >
             <span>
               <Button
                 variant="contained"
-                startIcon={isLoading ? <CircularProgress size={20} /> : <SummarizeIcon />}
+                startIcon={
+                  isLoading ? <CircularProgress size={20} /> : <SummarizeIcon />
+                }
                 onClick={handleSummarize}
                 disabled={!canSummarize}
                 aria-label="Summarize all text boxes"
                 className={styles.summarizeButton}
               >
-                {isLoading ? 'Summarizing...' : 'Summarize'}
+                {isLoading ? "Summarizing..." : "Summarize"}
               </Button>
             </span>
           </Tooltip>
 
           {summary && (
             <>
-              <Tooltip title={copySuccess ? 'Copied!' : 'Copy to clipboard'}>
+              <Tooltip title={copySuccess ? "Copied!" : "Copy to clipboard"}>
                 <IconButton
                   onClick={handleCopy}
                   aria-label="Copy summary to clipboard"
@@ -268,9 +269,13 @@ export function SummarizePanel() {
             <Typography variant="body1" className={styles.summaryText}>
               {summary.text}
             </Typography>
-            <Typography variant="caption" color="text.secondary" className={styles.metadata}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              className={styles.metadata}
+            >
               Generated from {summary.sourceTextCount} text box
-              {summary.sourceTextCount !== 1 ? 'es' : ''} •{' '}
+              {summary.sourceTextCount !== 1 ? "es" : ""} •{" "}
               {new Date(summary.createdAt).toLocaleTimeString()}
             </Typography>
           </Box>
@@ -280,8 +285,8 @@ export function SummarizePanel() {
           <Box className={styles.emptyState}>
             <Typography variant="body2" color="text.secondary">
               {textBoxes.length === 0
-                ? 'Extract some text from the PDF first, then click Summarize.'
-                : 'Click Summarize to generate a concise summary of all extracted text.'}
+                ? "Extract some text from the PDF first, then click Summarize."
+                : "Click Summarize to generate a concise summary of all extracted text."}
             </Typography>
           </Box>
         )}
@@ -291,13 +296,14 @@ export function SummarizePanel() {
 }
 
 // Helper function to announce messages to screen readers
-function announceToScreenReader(message, type = 'status') {
-  const elementId = type === 'error' ? 'error-announcements' : 'status-announcements';
+function announceToScreenReader(message, type = "status") {
+  const elementId =
+    type === "error" ? "error-announcements" : "status-announcements";
   const element = document.getElementById(elementId);
   if (element) {
     element.textContent = message;
     setTimeout(() => {
-      element.textContent = '';
+      element.textContent = "";
     }, 1000);
   }
 }

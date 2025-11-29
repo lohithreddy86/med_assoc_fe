@@ -37,39 +37,41 @@
  * );
  * // Result: { x: 0.222, y: 0.708, width: 0.111, height: 0.042 }
  */
-export function convertToNormalizedPDFCoords(browserRect, scale, pageDimensions) {
+export function convertToNormalizedPDFCoords(
+  browserRect,
+  scale,
+  pageDimensions,
+) {
   // Validate inputs
-  if (!browserRect || typeof browserRect !== 'object') {
-    throw new Error('Invalid browserRect: must be an object');
+  if (!browserRect || typeof browserRect !== "object") {
+    throw new Error("Invalid browserRect: must be an object");
   }
 
   if (
-    typeof browserRect.x !== 'number' ||
-    typeof browserRect.y !== 'number' ||
-    typeof browserRect.width !== 'number' ||
-    typeof browserRect.height !== 'number'
+    typeof browserRect.x !== "number" ||
+    typeof browserRect.y !== "number" ||
+    typeof browserRect.width !== "number" ||
+    typeof browserRect.height !== "number"
   ) {
-    throw new Error(
-      'Invalid browserRect: x, y, width, height must be numbers'
-    );
+    throw new Error("Invalid browserRect: x, y, width, height must be numbers");
   }
 
-  if (typeof scale !== 'number' || scale <= 0) {
-    throw new Error('Invalid scale: must be a positive number');
+  if (typeof scale !== "number" || scale <= 0) {
+    throw new Error("Invalid scale: must be a positive number");
   }
 
-  if (!pageDimensions || typeof pageDimensions !== 'object') {
-    throw new Error('Invalid pageDimensions: must be an object');
+  if (!pageDimensions || typeof pageDimensions !== "object") {
+    throw new Error("Invalid pageDimensions: must be an object");
   }
 
   if (
-    typeof pageDimensions.width !== 'number' ||
-    typeof pageDimensions.height !== 'number' ||
+    typeof pageDimensions.width !== "number" ||
+    typeof pageDimensions.height !== "number" ||
     pageDimensions.width <= 0 ||
     pageDimensions.height <= 0
   ) {
     throw new Error(
-      'Invalid pageDimensions: width and height must be positive numbers'
+      "Invalid pageDimensions: width and height must be positive numbers",
     );
   }
 
@@ -114,16 +116,16 @@ export function convertToNormalizedPDFCoords(browserRect, scale, pageDimensions)
  */
 export async function extractPageDimensions(pdfDocument, pageNumber) {
   if (!pdfDocument) {
-    throw new Error('Invalid pdfDocument: must be provided');
+    throw new Error("Invalid pdfDocument: must be provided");
   }
 
   if (
-    typeof pageNumber !== 'number' ||
+    typeof pageNumber !== "number" ||
     pageNumber < 1 ||
     pageNumber > pdfDocument.numPages
   ) {
     throw new Error(
-      `Invalid pageNumber: must be between 1 and ${pdfDocument.numPages}`
+      `Invalid pageNumber: must be between 1 and ${pdfDocument.numPages}`,
     );
   }
 
@@ -155,11 +157,11 @@ export async function extractPageDimensions(pdfDocument, pageNumber) {
  */
 export function getCanvasScale(canvas, pageDimensions) {
   if (!(canvas instanceof HTMLCanvasElement)) {
-    throw new Error('Invalid canvas: must be an HTMLCanvasElement');
+    throw new Error("Invalid canvas: must be an HTMLCanvasElement");
   }
 
   if (!pageDimensions || !pageDimensions.width) {
-    throw new Error('Invalid pageDimensions: must have width property');
+    throw new Error("Invalid pageDimensions: must have width property");
   }
 
   return canvas.width / pageDimensions.width;

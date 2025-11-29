@@ -2,26 +2,49 @@
 
 A React-based web application for medical associates to upload PDF documents, extract text via OCR, and generate summaries.
 
-## 🎯 Current Status: MVP (User Story 1) Complete
+## 🎯 Current Status: All User Stories Complete (MVP + US2 + US3 + US4)
 
 ✅ **Implemented Features:**
+
+**User Story 1: PDF Upload & Viewing**
 - PDF upload with drag-and-drop support
 - File validation (PDF only, max 10 MB)
 - Malicious content detection (embedded JavaScript, URLs)
 - Multi-page PDF viewing with thumbnails
 - Page navigation (thumbnails, buttons, keyboard shortcuts)
 - Zoom controls (8 levels: 50%, 75%, 100%, 125%, 150%, 200%, 300%, 400%)
-- Fit-to-width and fit-to-page modes
 - Keyboard navigation (Page Up/Down, arrow keys)
-- WCAG 2.1 AA accessibility compliance
-- High-contrast mode support
-- Screen reader announcements
 
-🚧 **Planned Features:**
-- OCR text extraction from selected regions
-- Text box editing and management
-- AI-powered summarization
-- Copy and export functionality
+**User Story 2: OCR Text Extraction**
+- Interactive snip overlay for region selection
+- Resize handles (8 corners + edges)
+- Keyboard-based snip movement and resizing
+- Delete button for removing snips
+- OCR request queuing with non-blocking UI
+- Coordinate conversion at all zoom levels
+
+**User Story 3: Text Editing & Management**
+- Real-time text editing in text boxes
+- Insert new text box (Insert key)
+- Delete text box (Delete key)
+- Merge adjacent boxes (Shift+M)
+- Comprehensive undo/redo (Ctrl+Z/Y)
+- Tab navigation between boxes
+
+**User Story 4: AI Summarization**
+- Generate summaries from all text boxes (Ctrl+Enter)
+- Copy summary to clipboard
+- Export as .txt or .json files
+- Adaptive summary length
+- Error handling with retry
+
+**Security & Accessibility:**
+- WCAG 2.1 AA accessibility compliance
+- DOMPurify XSS prevention
+- CSRF token protection
+- High-contrast mode toggle
+- Screen reader support
+- No data persistence warnings
 
 ## 🚀 Quick Start
 
@@ -71,24 +94,30 @@ npm run perf
 
 ```
 src/
-├── components/          # React components
-│   ├── PDFUploader/    # File upload with drag-and-drop
-│   └── PDFViewerPane/  # PDF viewer with thumbnails & zoom
-├── contexts/           # React Context providers
-│   └── AppContext.jsx  # Global state management
-├── hooks/              # Custom React hooks
-│   └── useUndo.js      # Undo/redo with 50-action history
-├── services/           # API services
-│   ├── api.js          # API wrappers (OCR, summarization)
-│   └── ocrQueue.js     # OCR request queue manager
-├── mocks/              # Mock Service Worker (MSW) setup
-│   ├── handlers/       # API mock handlers
-│   └── browser.js      # MSW configuration
-├── utils/              # Utility functions
-│   └── coordinates.js  # PDF coordinate conversion
-├── theme.js            # Material UI themes (light + high-contrast)
-├── App.jsx             # Root component
-└── index.js            # Entry point with MSW initialization
+├── components/             # React components
+│   ├── PDFUploader/       # File upload with drag-and-drop
+│   ├── PDFViewerPane/     # PDF viewer with thumbnails & zoom
+│   ├── SnipOverlay/       # Interactive OCR region selection
+│   ├── SnipList/          # Editable text box list
+│   └── SummarizePanel/    # Summary generation and export
+├── contexts/              # React Context providers
+│   └── AppContext.jsx     # Global state with undo/redo
+├── hooks/                 # Custom React hooks
+│   └── useUndo.js         # Undo/redo with 50-action FIFO history
+├── services/              # API services
+│   ├── api.js             # API wrappers (OCR, summarization)
+│   └── ocrQueue.js        # OCR request queue manager (max 50, FIFO)
+├── mocks/                 # Mock Service Worker (MSW) setup
+│   ├── handlers/          # API mock handlers
+│   │   ├── ocrHandlers.js
+│   │   └── summaryHandlers.js
+│   └── browser.js         # MSW configuration
+├── utils/                 # Utility functions
+│   ├── coordinates.js     # Browser↔PDF coordinate conversion
+│   └── sanitize.js        # DOMPurify XSS prevention
+├── theme.js               # Material UI themes (light + high-contrast)
+├── App.jsx                # Root component with toolbar
+└── index.js               # Entry point with MSW initialization
 ```
 
 ## 🎨 Features in Detail
@@ -177,39 +206,68 @@ npm run test:a11y
 
 ⚠️ **Important**: This MVP has no authentication. Deploy only behind network access controls (VPN, firewall) for testing.
 
-## 🎯 MVP Testing Guide
+## 📖 Complete User Guide
 
-### Upload a PDF
+### 1. Upload a PDF
 
-1. Click or drag-and-drop a PDF file
-2. Verify file is under 10 MB
-3. Check for error messages on invalid files
+1. Drag and drop a PDF file onto the upload area, or click to browse
+2. File must be PDF format, max 10 MB
+3. The PDF renders with thumbnails on the left
 
-### Navigate the PDF
+### 2. Extract Text with OCR
 
-1. Use thumbnail sidebar to jump to pages
-2. Click next/previous buttons
-3. Use Page Up/Down keyboard shortcuts
+1. **Create snip**: Click and drag on the PDF to draw a rectangle
+2. **Resize snip**: Use 8 resize handles (corners + edges) to adjust
+3. **Move snip**: Use arrow keys to move the selection
+4. **Resize with keyboard**: Shift + Arrow keys
+5. **Delete snip**: Press Delete or click the × button
+6. OCR processes automatically and text appears in the right panel
 
-### Zoom Controls
+### 3. Edit Extracted Text
 
-1. Click zoom in/out buttons
-2. Try fit-to-width and fit-to-page
-3. Verify zoom levels: 50%, 75%, 100%, 125%, 150%, 200%, 300%, 400%
+1. **Edit text**: Click a text box and type to modify content
+2. **Insert box**: Press Insert key to add new box after current
+3. **Delete box**: Press Delete (when not editing text)
+4. **Merge boxes**: Press Shift+M to combine with next box
+5. **Undo/Redo**: Ctrl+Z and Ctrl+Y for all operations
+6. **Navigate**: Tab/Shift+Tab to move between text boxes
 
-### Keyboard Navigation
+### 4. Generate Summary
 
-- **Page Up/Down**: Navigate pages
-- **Arrow keys**: Pan within zoomed pages
-- **Tab/Shift+Tab**: Move between controls
-- **Enter/Space**: Activate buttons
+1. **Trigger**: Click "Summarize" button or press Ctrl+Enter
+2. **Wait**: Loading spinner appears during processing
+3. **Review**: Summary displays in bottom panel
+4. **Copy**: Click copy icon to clipboard
+5. **Export**: Click export icon and choose .txt or .json format
 
-### Accessibility Testing
+### 5. Accessibility Features
 
-1. Enable screen reader (NVDA, JAWS, VoiceOver)
-2. Navigate using only keyboard
-3. Toggle high-contrast mode (when implemented)
-4. Verify all controls are announced
+- **High-contrast mode**: Click contrast icon in toolbar
+- **Keyboard navigation**: Complete workflow accessible via keyboard only
+- **Screen readers**: All actions announced via ARIA live regions
+- **Warnings**: Dismissible banners for no persistence and no auth
+
+### Complete Keyboard Shortcuts
+
+**PDF Navigation:**
+- Page Up/Down: Navigate pages
+- Arrow keys: Pan within page
+
+**Snip Manipulation:**
+- Arrow keys: Move snip
+- Shift + Arrow: Resize snip
+- Delete/Backspace: Remove snip
+
+**Text Editing:**
+- Insert: Add new text box
+- Delete: Remove text box (when not editing)
+- Shift+M: Merge with next box
+- Ctrl+Z: Undo
+- Ctrl+Y: Redo
+- Tab/Shift+Tab: Navigate boxes
+
+**Summarization:**
+- Ctrl+Enter: Generate summary
 
 ## 📋 Next Implementation Steps
 

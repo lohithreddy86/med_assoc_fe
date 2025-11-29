@@ -40,7 +40,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .snipRect:hover {
@@ -69,7 +71,9 @@
   pointer-events: auto;
   z-index: 20;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease-in-out, background-color 0.15s;
+  transition:
+    transform 0.15s ease-in-out,
+    background-color 0.15s;
 }
 
 .resizeHandle:hover {
@@ -95,7 +99,9 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.15s, transform 0.15s;
+  transition:
+    background-color 0.15s,
+    transform 0.15s;
   padding: 0;
 }
 

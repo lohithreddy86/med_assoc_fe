@@ -202,12 +202,12 @@
 - [x] T102a [P] Add authentication assumption warning to app startup: display dismissible banner on first load stating "This application has no authentication. Do not use with sensitive data without proper access controls" per spec.md assumption
 - [ ] T103 [P] Verify screen reader compatibility (NVDA, JAWS, or VoiceOver) for complete workflow per SC-012
 - [ ] T104 [P] Manual keyboard navigation testing: complete full workflow using only keyboard (Tab, Enter, Space, arrow keys, shortcuts) per SC-007
-- [ ] T105 Code cleanup: remove console.log statements, debugger statements, and unused imports per constitution pre-commit gates
-- [ ] T106 Run ESLint with zero warnings across all source files per constitution pre-commit gates
+- [x] T105 Code cleanup: remove console.log statements, debugger statements, and unused imports per constitution pre-commit gates
+- [x] T106 Run ESLint with zero warnings across all source files per constitution pre-commit gates
 - [ ] T106a [P] Add ESLint rule to detect localStorage/sessionStorage/IndexedDB usage (eslint-plugin-no-storage) and verify zero violations per FR-061
-- [ ] T107 Run Prettier formatting across all source files per constitution pre-commit gates
-- [ ] T108 Create README.md with quickstart instructions (npm install, npm start, MSW initialization) based on research.md installation commands
-- [ ] T108a Add authentication integration hooks to README.md: document where to add auth (App.jsx, api.js interceptors, protected route wrapper) and reference spec.md assumption that auth will be added later
+- [x] T107 Run Prettier formatting across all source files per constitution pre-commit gates
+- [x] T108 Create README.md with quickstart instructions (npm install, npm start, MSW initialization) based on research.md installation commands
+- [x] T108a Add authentication integration hooks to README.md: document where to add auth (App.jsx, api.js interceptors, protected route wrapper) and reference spec.md assumption that auth will be added later
 - [ ] T109 [P] Add PropTypes definitions to all components per constitution code quality standards
 - [ ] T110 [P] Add inline comments for complex coordinate conversion math in src/utils/coordinates.js per constitution code quality standards
 - [ ] T111 Verify all functional requirements FR-001 through FR-061 are implemented and working

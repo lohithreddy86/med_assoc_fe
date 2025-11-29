@@ -37,7 +37,11 @@ class OCRQueue {
     // Check queue capacity
     if (this.queue.length >= this.maxQueueSize) {
       if (onError) {
-        onError(new Error('Too many pending OCR requests. Please wait for earlier snips to complete.'));
+        onError(
+          new Error(
+            "Too many pending OCR requests. Please wait for earlier snips to complete.",
+          ),
+        );
       }
       return null;
     }
@@ -49,7 +53,7 @@ class OCRQueue {
       onSuccess,
       onError,
       onTimeout,
-      status: 'pending',
+      status: "pending",
       enqueuedAt: Date.now(),
     };
 
@@ -75,14 +79,16 @@ class OCRQueue {
     this.processing = true;
     const request = this.queue.shift();
     this.activeRequest = request;
-    request.status = 'processing';
+    request.status = "processing";
 
     // Set up timeout
     const timeoutId = setTimeout(() => {
       if (this.activeRequest && this.activeRequest.id === request.id) {
-        request.status = 'timeout';
+        request.status = "timeout";
         if (request.onTimeout) {
-          request.onTimeout(new Error('OCR request timed out. Click retry to try again.'));
+          request.onTimeout(
+            new Error("OCR request timed out. Click retry to try again."),
+          );
         }
         this.activeRequest = null;
         this.processing = false;
@@ -92,10 +98,10 @@ class OCRQueue {
 
     try {
       // Make OCR API request
-      const response = await fetch('/api/snip-crop', {
-        method: 'POST',
+      const response = await fetch("/api/snip-crop", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(request.snipData),
       });
@@ -105,13 +111,13 @@ class OCRQueue {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'OCR request failed');
+        throw new Error(errorData.error || "OCR request failed");
       }
 
       const data = await response.json();
 
       // Mark as success
-      request.status = 'success';
+      request.status = "success";
       if (request.onSuccess) {
         request.onSuccess(data);
       }
@@ -120,7 +126,7 @@ class OCRQueue {
       clearTimeout(timeoutId);
 
       // Mark as error
-      request.status = 'error';
+      request.status = "error";
       if (request.onError) {
         request.onError(error);
       }
