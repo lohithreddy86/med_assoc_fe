@@ -135,19 +135,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T061 [US3] Add real-time text editing capability to SnipList TextFields with onChange handler that updates AppContext state via setState (pushes to undo history per FR-028)
-- [ ] T062 [US3] Implement Ctrl+N keyboard shortcut handler in App.jsx to insert new empty text box immediately after currently focused text box (or at list end if no focus) in SnipList (FR-029, FR-034)
-- [ ] T063 [US3] Implement Delete key handler in SnipList to remove currently focused text box from AppContext state (FR-035)
-- [ ] T064 [US3] Implement Shift+M keyboard shortcut handler in SnipList to merge focused text box with next adjacent text box (FR-036)
-- [ ] T065 [US3] Add edge case handling for merge operation when no adjacent box available: Shift+M keyboard shortcut performs no-op (silent failure) when focused box is last in list per edge case in spec.md
-- [ ] T066 [US3] Integrate useUndo hook with AppContext to enable comprehensive undo/redo for all user actions: snip creation/deletion, text box operations (insert, delete, merge), and text edits (clarification #2, FR-032)
-- [ ] T067 [US3] Implement Ctrl+Z keyboard shortcut in App.jsx to trigger undo() from useUndo hook (FR-037)
-- [ ] T068 [US3] Implement Ctrl+Y keyboard shortcut in App.jsx to trigger redo() from useUndo hook (FR-037)
-- [ ] T069 [US3] Add visual feedback for undo/redo operations with immediate state updates (<100ms per SC-011)
-- [ ] T070 [US3] Add ARIA announcements for undo/redo operations via aria-live regions (e.g., "Undone: deleted text box") per FR-043
-- [ ] T071 [US3] Add edge case handling for exhausted undo/redo history (disable shortcuts when canUndo/canRedo is false) per edge case in spec.md
-- [ ] T072 [US3] Verify automatic text box order and numbering maintenance after insertions, deletions, and merges (FR-033)
-- [ ] T073 [US3] Add keyboard shortcut documentation tooltip or help overlay for Ctrl+N, Delete, Shift+M, Ctrl+Z/Y shortcuts
+- [x] T061 [US3] Add real-time text editing capability to SnipList TextFields with onChange handler that updates AppContext state via setState (pushes to undo history per FR-028)
+- [x] T062 [US3] Implement Ctrl+N keyboard shortcut handler in App.jsx to insert new empty text box immediately after currently focused text box (or at list end if no focus) in SnipList (FR-029, FR-034)
+- [x] T063 [US3] Implement Delete key handler in SnipList to remove currently focused text box from AppContext state (FR-035)
+- [x] T064 [US3] Implement Shift+M keyboard shortcut handler in SnipList to merge focused text box with next adjacent text box (FR-036)
+- [x] T065 [US3] Add edge case handling for merge operation when no adjacent box available: Shift+M keyboard shortcut performs no-op (silent failure) when focused box is last in list per edge case in spec.md
+- [x] T066 [US3] Integrate useUndo hook with AppContext to enable comprehensive undo/redo for all user actions: snip creation/deletion, text box operations (insert, delete, merge), and text edits (clarification #2, FR-032)
+- [x] T067 [US3] Implement Ctrl+Z keyboard shortcut in App.jsx to trigger undo() from useUndo hook (FR-037)
+- [x] T068 [US3] Implement Ctrl+Y keyboard shortcut in App.jsx to trigger redo() from useUndo hook (FR-037)
+- [x] T069 [US3] Add visual feedback for undo/redo operations with immediate state updates (<100ms per SC-011)
+- [x] T070 [US3] Add ARIA announcements for undo/redo operations via aria-live regions (e.g., "Undone: deleted text box") per FR-043
+- [x] T071 [US3] Add edge case handling for exhausted undo/redo history (disable shortcuts when canUndo/canRedo is false) per edge case in spec.md
+- [x] T072 [US3] Verify automatic text box order and numbering maintenance after insertions, deletions, and merges (FR-033)
+- [x] T073 [US3] Add keyboard shortcut documentation tooltip or help overlay for Ctrl+N, Delete, Shift+M, Ctrl+Z/Y shortcuts
 - [ ] T074 [US3] Verify all keyboard shortcuts work correctly with screen readers (announce actions via aria-live) per SC-012
 
 **Checkpoint**: At this point, User Story 3 should be fully functional and testable independently. Users can perform full CRUD operations on text boxes with keyboard shortcuts and undo/redo all actions.

@@ -5,7 +5,19 @@ import { useAppContext } from '../../contexts/AppContext';
 import styles from './SnipList.module.css';
 
 export function SnipList() {
-  const { textBoxes, focusedBoxId, setFocusedBox, updateTextBox, deleteTextBox } = useAppContext();
+  const {
+    textBoxes,
+    focusedBoxId,
+    setFocusedBox,
+    updateTextBox,
+    deleteTextBox,
+    insertTextBox,
+    mergeTextBoxes,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useAppContext();
   const focusedRef = useRef(null);
 
   // Auto-focus the focused text box
@@ -14,6 +26,98 @@ export function SnipList() {
       focusedRef.current.focus();
     }
   }, [focusedBoxId]);
+
+  // Global keyboard shortcuts for text box management
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Insert key: Insert new text box after focused box
+      if (e.key === 'Insert') {
+        e.preventDefault();
+        const newTextBox = {
+          id: `textbox-${Date.now()}`,
+          text: '',
+          pageNumber: focusedBoxId
+            ? textBoxes.find((box) => box.id === focusedBoxId)?.pageNumber || 1
+            : 1,
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
+        };
+        insertTextBox(focusedBoxId, newTextBox);
+        announceToScreenReader('New text box inserted', 'status');
+        return;
+      }
+
+      // Ctrl+Z: Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo) {
+          undo();
+          announceToScreenReader('Undo performed', 'status');
+        } else {
+          announceToScreenReader('Nothing to undo', 'status');
+        }
+        return;
+      }
+
+      // Ctrl+Y or Ctrl+Shift+Z: Redo
+      if (
+        ((e.ctrlKey || e.metaKey) && e.key === 'y') ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z')
+      ) {
+        e.preventDefault();
+        if (canRedo) {
+          redo();
+          announceToScreenReader('Redo performed', 'status');
+        } else {
+          announceToScreenReader('Nothing to redo', 'status');
+        }
+        return;
+      }
+
+      // Only handle Delete and Shift+M if a text box is focused
+      if (!focusedBoxId) return;
+
+      // Delete key: Delete focused text box
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Only handle if not focused on a text field (to allow normal editing)
+        if (document.activeElement?.tagName !== 'TEXTAREA' &&
+            document.activeElement?.tagName !== 'INPUT') {
+          e.preventDefault();
+          deleteTextBox(focusedBoxId);
+          announceToScreenReader('Text box deleted', 'status');
+        }
+        return;
+      }
+
+      // Shift+M: Merge with next text box
+      if (e.shiftKey && e.key === 'M') {
+        e.preventDefault();
+        const currentIndex = textBoxes.findIndex((box) => box.id === focusedBoxId);
+        if (currentIndex === -1 || currentIndex === textBoxes.length - 1) {
+          announceToScreenReader('Cannot merge: no adjacent text box', 'error');
+        } else {
+          mergeTextBoxes(focusedBoxId);
+          announceToScreenReader('Text boxes merged', 'status');
+        }
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [
+    focusedBoxId,
+    textBoxes,
+    insertTextBox,
+    deleteTextBox,
+    mergeTextBoxes,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  ]);
 
   // Handle text change
   const handleTextChange = (boxId, newText) => {
@@ -125,7 +229,7 @@ export function SnipList() {
               id={`textbox-help-${box.id}`}
               className={styles.helpText}
             >
-              Press Tab to move to next box • Shift+Tab for previous
+              Tab: next • Shift+Tab: previous • Insert: new box • Delete: remove • Shift+M: merge • Ctrl+Z/Y: undo/redo
             </Typography>
           </Box>
         ))}
