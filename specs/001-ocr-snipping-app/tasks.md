@@ -189,17 +189,17 @@
 
 **Purpose**: Improvements that affect multiple user stories and final quality assurance
 
-- [ ] T093 [P] Install and integrate DOMPurify library (^3.0.0) for HTML sanitization; apply to all user-editable text (TextBox content, summary display) to prevent XSS attacks per FR-051
-- [ ] T094 [P] Add CSRF token inclusion in all API requests (snip-crop, summarize endpoints per FR-052)
-- [ ] T095 [P] Verify HTTPS assumption and SameSite=Strict cookie configuration in API service per FR-053
-- [ ] T096 [P] Add high-contrast mode toggle button in App.jsx that switches between light and accessible themes (FR-042)
+- [x] T093 [P] Install and integrate DOMPurify library (^3.0.0) for HTML sanitization; apply to all user-editable text (TextBox content, summary display) to prevent XSS attacks per FR-051
+- [x] T094 [P] Add CSRF token inclusion in all API requests (snip-crop, summarize endpoints per FR-052)
+- [x] T095 [P] Verify HTTPS assumption and SameSite=Strict cookie configuration in API service per FR-053
+- [x] T096 [P] Add high-contrast mode toggle button in App.jsx that switches between light and accessible themes (FR-042)
 - [ ] T097 [P] Verify all color contrast ratios meet WCAG 2.1 AA standards (minimum 4.5:1) using automated contrast checker (FR-041, SC-008)
 - [ ] T098 [P] Add loading indicators for all operations exceeding 500ms (PDF upload, OCR, summarization per SC-013)
 - [ ] T099 [P] Add comprehensive error logging for debugging purposes (log technical details without exposing to users per FR-056)
 - [ ] T100 [P] Verify application remains responsive during all operations with non-blocking UI (FR-059, SC-013)
 - [ ] T101 [P] Test application with 50-page and 100+ page PDFs to verify performance and scrolling smoothness (SC-010, edge case in spec.md)
-- [ ] T102 [P] Add "no persistence" warning message on app load informing users that all data is lost on browser close/refresh per clarification #5 and edge case in spec.md
-- [ ] T102a [P] Add authentication assumption warning to app startup: display dismissible banner on first load stating "This application has no authentication. Do not use with sensitive data without proper access controls" per spec.md assumption
+- [x] T102 [P] Add "no persistence" warning message on app load informing users that all data is lost on browser close/refresh per clarification #5 and edge case in spec.md
+- [x] T102a [P] Add authentication assumption warning to app startup: display dismissible banner on first load stating "This application has no authentication. Do not use with sensitive data without proper access controls" per spec.md assumption
 - [ ] T103 [P] Verify screen reader compatibility (NVDA, JAWS, or VoiceOver) for complete workflow per SC-012
 - [ ] T104 [P] Manual keyboard navigation testing: complete full workflow using only keyboard (Tab, Enter, Space, arrow keys, shortcuts) per SC-007
 - [ ] T105 Code cleanup: remove console.log statements, debugger statements, and unused imports per constitution pre-commit gates

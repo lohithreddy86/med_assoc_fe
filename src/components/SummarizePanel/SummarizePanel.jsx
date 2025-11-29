@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { useAppContext } from '../../contexts/AppContext';
 import { summarizeTexts } from '../../services/api';
+import { sanitizeSummary } from '../../utils/sanitize';
 import styles from './SummarizePanel.module.css';
 
 export function SummarizePanel() {
@@ -49,8 +50,11 @@ export function SummarizePanel() {
       // Call summarization API
       const summaryResult = await summarizeTexts(texts);
 
+      // Sanitize summary text to prevent XSS attacks (FR-051)
+      const sanitizedSummary = sanitizeSummary(summaryResult.summary);
+
       setSummary({
-        text: summaryResult.summary,
+        text: sanitizedSummary,
         createdAt: Date.now(),
         sourceTextCount: texts.length,
       });

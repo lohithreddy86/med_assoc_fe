@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Box, TextField, Typography, IconButton, Tooltip } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import { useAppContext } from '../../contexts/AppContext';
+import { sanitizeUserInput } from '../../utils/sanitize';
 import styles from './SnipList.module.css';
 
 export function SnipList() {
@@ -121,7 +122,9 @@ export function SnipList() {
 
   // Handle text change
   const handleTextChange = (boxId, newText) => {
-    updateTextBox(boxId, { text: newText, modifiedAt: Date.now() });
+    // Sanitize user input to prevent XSS attacks (FR-051)
+    const sanitizedText = sanitizeUserInput(newText);
+    updateTextBox(boxId, { text: sanitizedText, modifiedAt: Date.now() });
   };
 
   // Handle focus (single-click focus model per clarification #1)

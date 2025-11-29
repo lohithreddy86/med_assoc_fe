@@ -1,13 +1,14 @@
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box } from '@mui/material';
+import { Box, IconButton, Tooltip, Alert, Collapse } from '@mui/material';
+import { Contrast, Close } from '@mui/icons-material';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { lightTheme, highContrastTheme } from './theme';
 import { PDFUploader } from './components/PDFUploader/PDFUploader';
 import { PDFViewerPane } from './components/PDFViewerPane/PDFViewerPane';
 import { SnipList } from './components/SnipList/SnipList';
 import { SummarizePanel } from './components/SummarizePanel/SummarizePanel';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 function AppLayout() {
   const { pdfDocument } = useAppContext();
@@ -79,7 +80,28 @@ function AppContent() {
     deleteTextBox,
     mergeTextBoxes,
     focusedBoxId,
+    highContrastMode,
+    setHighContrastMode,
   } = useAppContext();
+
+  // State for dismissible warnings
+  const [showNoPersistenceWarning, setShowNoPersistenceWarning] = useState(() => {
+    // Only show on first load if not previously dismissed
+    return !sessionStorage.getItem('noPersistenceWarningDismissed');
+  });
+  const [showAuthWarning, setShowAuthWarning] = useState(() => {
+    return !sessionStorage.getItem('authWarningDismissed');
+  });
+
+  const handleDismissNoPersistenceWarning = () => {
+    sessionStorage.setItem('noPersistenceWarningDismissed', 'true');
+    setShowNoPersistenceWarning(false);
+  };
+
+  const handleDismissAuthWarning = () => {
+    sessionStorage.setItem('authWarningDismissed', 'true');
+    setShowAuthWarning(false);
+  };
 
   // Keyboard shortcut handlers
   useEffect(() => {
@@ -142,6 +164,52 @@ function AppContent() {
         overflow: 'hidden',
       }}
     >
+      {/* Toolbar with accessibility toggle */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '8px 16px',
+          borderBottom: '1px solid #e0e0e0',
+          backgroundColor: '#fafafa',
+          flexShrink: 0,
+        }}
+      >
+        <Tooltip title={highContrastMode ? 'Disable high contrast mode' : 'Enable high contrast mode'}>
+          <IconButton
+            onClick={() => setHighContrastMode(!highContrastMode)}
+            aria-label={highContrastMode ? 'Disable high contrast mode' : 'Enable high contrast mode'}
+            sx={{
+              color: highContrastMode ? '#000' : '#1976d2',
+            }}
+          >
+            <Contrast />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* Warning banners */}
+      <Collapse in={showNoPersistenceWarning}>
+        <Alert
+          severity="warning"
+          onClose={handleDismissNoPersistenceWarning}
+          sx={{ borderRadius: 0 }}
+        >
+          <strong>No Data Persistence:</strong> All data is lost on browser close or refresh. Do not use for permanent records.
+        </Alert>
+      </Collapse>
+
+      <Collapse in={showAuthWarning}>
+        <Alert
+          severity="info"
+          onClose={handleDismissAuthWarning}
+          sx={{ borderRadius: 0 }}
+        >
+          <strong>Authentication Notice:</strong> This application has no authentication. Do not use with sensitive data without proper access controls.
+        </Alert>
+      </Collapse>
+
       {/* ARIA live regions for screen reader announcements */}
       <div
         role="status"
