@@ -1,0 +1,54 @@
+/* PDFUploader component styles */
+
+.uploader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+.drop-zone {
+  width: 100%;
+  max-width: 600px;
+  min-height: 200px;
+  border: 2px dashed;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.drop-zone:hover,
+.drop-zone:focus {
+  border-color: var(--primary-color, #1976d2);
+  outline-offset: 2px;
+}
+
+.drop-zone-active {
+  border-color: var(--primary-color, #1976d2);
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .drop-zone {
+    border-width: 3px;
+  }
+
+  .drop-zone:focus {
+    outline-width: 3px;
+  }
+}
+
+/* Ensure minimum touch target size for accessibility */
+.upload-button {
+  min-width: 200px;
+  min-height: 44px;
+}

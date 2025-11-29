@@ -1,0 +1,99 @@
+/* PDFViewerPane component styles */
+
+.viewer-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.thumbnail-sidebar {
+  width: 200px;
+  border-right: 1px solid;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.main-viewer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid;
+  min-height: 56px;
+}
+
+.page-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdf-canvas-container {
+  flex: 1;
+  overflow: auto;
+  background-color: #e0e0e0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .thumbnail-sidebar {
+    border-right-width: 2px;
+  }
+
+  .toolbar {
+    border-bottom-width: 2px;
+  }
+}
+
+/* Ensure toolbar buttons meet minimum touch target size */
+.toolbar button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* PDF thumbnail styling */
+:global(.rpv-thumbnail__container) {
+  padding: 8px;
+}
+
+:global(.rpv-thumbnail__item) {
+  margin-bottom: 16px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+:global(.rpv-thumbnail__item--selected) {
+  border-color: var(--primary-color, #1976d2);
+}
+
+:global(.rpv-thumbnail__item:hover) {
+  border-color: var(--primary-color, #1976d2);
+  opacity: 0.8;
+}
+
+/* Ensure PDF viewer maintains aspect ratio */
+:global(.rpv-core__viewer) {
+  height: 100%;
+}
+
+:global(.rpv-core__inner-page) {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
