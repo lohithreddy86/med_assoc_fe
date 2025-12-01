@@ -13,6 +13,8 @@
  * - Status tracking per request
  */
 
+import { API_BASE_URL } from "./api";
+
 class OCRQueue {
   constructor() {
     this.queue = [];
@@ -97,20 +99,27 @@ class OCRQueue {
     }, this.requestTimeout);
 
     try {
+      // Debug: Log request data
+      console.log("[OCR Queue] Sending request:", JSON.stringify(request.snipData, null, 2));
+
       // Make OCR API request
-      const response = await fetch("/api/snip-crop", {
+      const response = await fetch(`${API_BASE_URL}/api/snip-crop`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies for cross-origin requests
         body: JSON.stringify(request.snipData),
       });
+
+      console.log("[OCR Queue] Response status:", response.status);
 
       // Clear timeout since request completed
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("[OCR Queue] Error response:", errorData);
         throw new Error(errorData.error || "OCR request failed");
       }
 
@@ -119,7 +128,8 @@ class OCRQueue {
       // Mark as success
       request.status = "success";
       if (request.onSuccess) {
-        request.onSuccess(data);
+        // Extract text from response { id, text, image_id }
+        request.onSuccess(data.text || "");
       }
     } catch (error) {
       // Clear timeout

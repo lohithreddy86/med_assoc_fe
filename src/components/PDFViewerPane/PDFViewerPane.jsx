@@ -50,6 +50,19 @@ export function PDFViewerPane() {
   const { Thumbnails } = thumbnailPluginInstance;
   const { zoomTo } = zoomPluginInstance;
 
+  // Handle page change from Viewer - sync with AppContext
+  const handlePageChange = useCallback(
+    (e) => {
+      // e.currentPage is 0-indexed, we use 1-indexed
+      const newPage = e.currentPage + 1;
+      if (newPage !== currentPage) {
+        setCurrentPage(newPage);
+        console.log("[PDFViewer] Page changed to:", newPage);
+      }
+    },
+    [currentPage, setCurrentPage],
+  );
+
   // Extract page dimensions when document loads (T033)
   useEffect(() => {
     if (pdfDocument) {
@@ -301,6 +314,8 @@ export function PDFViewerPane() {
             <Viewer
               fileUrl={pdfDocument}
               plugins={[thumbnailPluginInstance, zoomPluginInstance]}
+              onPageChange={handlePageChange}
+              initialPage={currentPage - 1}
             />
 
             {/* Snip Overlay for drawing rectangles */}

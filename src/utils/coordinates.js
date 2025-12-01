@@ -95,12 +95,26 @@ export function convertToNormalizedPDFCoords(
   // Formula: pdfY = 1.0 - (browserY + height)
   const pdfNormalizedY = 1.0 - (normalizedY + normalizedHeight);
 
-  return {
-    x: normalizedX,
-    y: pdfNormalizedY,
-    width: normalizedWidth,
-    height: normalizedHeight,
+  // Clamp all values to valid 0-1 range to avoid floating point issues
+  // and ensure coordinates don't exceed page bounds
+  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+  const result = {
+    x: clamp(normalizedX, 0, 1),
+    y: clamp(pdfNormalizedY, 0, 1),
+    width: clamp(normalizedWidth, 0.001, 1), // Minimum width to avoid zero
+    height: clamp(normalizedHeight, 0.001, 1), // Minimum height to avoid zero
   };
+
+  // Ensure x + width and y + height don't exceed 1.0
+  if (result.x + result.width > 1.0) {
+    result.width = 1.0 - result.x;
+  }
+  if (result.y + result.height > 1.0) {
+    result.height = 1.0 - result.y;
+  }
+
+  return result;
 }
 
 /**

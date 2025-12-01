@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAppContext } from "../../contexts/AppContext";
-import { convertToNormalizedPDFCoords } from "../../utils/coordinates";
 import { ocrQueue } from "../../services/ocrQueue";
 import styles from "./SnipOverlay.module.css";
 
@@ -11,37 +10,164 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
   const [startPoint, setStartPoint] = useState(null);
   const [currentRect, setCurrentRect] = useState(null);
   const [selectedSnipId, setSelectedSnipId] = useState(null);
-  const [resizing, setResizing] = useState(null); // { snipId, handle: 'nw'|'ne'|'sw'|'se'|'n'|'s'|'e'|'w' }
+  const [resizing, setResizing] = useState(null);
   const overlayRef = useRef(null);
+
+  // Helper: Get the current page canvas element and its dimensions
+  // CRITICAL: Must find the canvas for the CURRENT PAGE, not just any canvas
+  // In a multi-page PDF, querySelector returns the first canvas (page 1),
+  // but we need the canvas for pageNumber (e.g., page 6)
+  const getPageInfo = useCallback(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) {
+      return null;
+    }
+
+    const overlayRect = overlay.getBoundingClientRect();
+    const parent = overlay.parentElement;
+
+    // Strategy 1: Find the canvas that's currently visible in the viewport
+    // This is more reliable than trying to find by page number attribute
+    const allCanvases = parent?.querySelectorAll('canvas') || [];
+    let bestCanvas = null;
+    let bestVisibility = 0;
+
+    for (const canvas of allCanvases) {
+      const rect = canvas.getBoundingClientRect();
+
+      // Check how much of this canvas is visible in the overlay
+      const overlapTop = Math.max(rect.top, overlayRect.top);
+      const overlapBottom = Math.min(rect.bottom, overlayRect.bottom);
+      const overlapLeft = Math.max(rect.left, overlayRect.left);
+      const overlapRight = Math.min(rect.right, overlayRect.right);
+
+      if (overlapBottom > overlapTop && overlapRight > overlapLeft) {
+        const visibleArea = (overlapBottom - overlapTop) * (overlapRight - overlapLeft);
+        const canvasArea = rect.width * rect.height;
+        const visibility = canvasArea > 0 ? visibleArea / canvasArea : 0;
+
+        // Pick the canvas with most visibility
+        if (visibility > bestVisibility) {
+          bestVisibility = visibility;
+          bestCanvas = canvas;
+        }
+      }
+    }
+
+    if (bestCanvas) {
+      const canvasRect = bestCanvas.getBoundingClientRect();
+      const result = {
+        offsetX: canvasRect.left - overlayRect.left,
+        offsetY: canvasRect.top - overlayRect.top,
+        pageWidth: canvasRect.width,
+        pageHeight: canvasRect.height,
+        found: true,
+        visibility: bestVisibility,
+        canvasCount: allCanvases.length,
+      };
+      console.log("[SnipOverlay] Found visible page canvas:", result);
+      return result;
+    }
+
+    // Fallback: use pageDimensions prop scaled by zoom
+    const fallback = {
+      offsetX: 0,
+      offsetY: 0,
+      pageWidth: pageDimensions.width * scale,
+      pageHeight: pageDimensions.height * scale,
+      found: false,
+      canvasCount: allCanvases.length,
+    };
+    console.warn("[SnipOverlay] No visible canvas found, using fallback:", fallback);
+    return fallback;
+  }, [pageDimensions, scale]);
+
+  // Helper: Convert overlay-relative rect to normalized PDF coordinates
+  const convertToNormalizedPDFCoords = useCallback((browserRect) => {
+    const pageInfo = getPageInfo();
+
+    if (!pageInfo) {
+      console.error("[SnipOverlay] Cannot convert coordinates - no page info");
+      return { x: 0, y: 0, width: 0.1, height: 0.1 };
+    }
+
+    // Calculate position relative to the page canvas (not the overlay)
+    const pageRelativeX = browserRect.x - pageInfo.offsetX;
+    const pageRelativeY = browserRect.y - pageInfo.offsetY;
+
+    // Normalize to 0-1 range relative to page dimensions
+    const normalizedX = pageRelativeX / pageInfo.pageWidth;
+    const normalizedY = pageRelativeY / pageInfo.pageHeight;
+    const normalizedWidth = browserRect.width / pageInfo.pageWidth;
+    const normalizedHeight = browserRect.height / pageInfo.pageHeight;
+
+    // CRITICAL: Convert browser Y to PDF Y coordinate system
+    // Browser: Y=0 at TOP, increases downward
+    // PDF: Y=0 at BOTTOM, increases upward
+    //
+    // Browser selection at top (normalizedY ≈ 0) should map to PDF top (high Y)
+    // Browser selection at bottom (normalizedY ≈ 1) should map to PDF bottom (low Y)
+    //
+    // The PDF rect.y represents the BOTTOM edge of the selection
+    // Browser bottom edge = normalizedY + normalizedHeight
+    // PDF bottom edge = 1.0 - browserBottomEdge = 1.0 - (normalizedY + normalizedHeight)
+    const pdfBottomEdge = 1.0 - (normalizedY + normalizedHeight);
+
+    // Clamp helper
+    const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+    const result = {
+      x: clamp(normalizedX, 0, 1),
+      y: clamp(pdfBottomEdge, 0, 1),  // PDF y = bottom edge
+      width: clamp(normalizedWidth, 0.001, 1),
+      height: clamp(normalizedHeight, 0.001, 1),
+    };
+
+    // Ensure selection doesn't exceed page bounds
+    if (result.x + result.width > 1.0) result.width = 1.0 - result.x;
+    if (result.y + result.height > 1.0) result.height = 1.0 - result.y;
+
+    // Detailed debug logging
+    console.log("[SnipOverlay] Coordinate conversion:", {
+      input: {
+        browserRect,
+        pageInfo: { ...pageInfo },
+      },
+      calculation: {
+        pageRelativeX,
+        pageRelativeY,
+        normalizedX: normalizedX.toFixed(3),
+        normalizedY: normalizedY.toFixed(3),
+        normalizedWidth: normalizedWidth.toFixed(3),
+        normalizedHeight: normalizedHeight.toFixed(3),
+        browserTopEdge: `${(normalizedY * 100).toFixed(1)}% from browser top`,
+        browserBottomEdge: `${((normalizedY + normalizedHeight) * 100).toFixed(1)}% from browser top`,
+        pdfBottomEdge: `${(pdfBottomEdge * 100).toFixed(1)}% from PDF bottom`,
+      },
+      output: result,
+    });
+
+    return result;
+  }, [getPageInfo]);
 
   // Helper: Re-send OCR request after resizing
   const resendOCRRequest = useCallback(
     (snip) => {
-      // Convert updated browser coordinates to normalized PDF coordinates
-      const normalizedCoords = convertToNormalizedPDFCoords(
-        snip.browserRect,
-        scale,
-        pageDimensions,
-      );
+      const normalizedCoords = convertToNormalizedPDFCoords(snip.browserRect);
 
-      // Update snip with new coordinates and reset status
       updateSnip(snip.id, {
         rect: normalizedCoords,
         status: "pending",
       });
 
-      // Enqueue new OCR request with pdf_id
       const requestId = ocrQueue.enqueue(
         {
           pdf_id: pdfId,
           page: pageNumber,
           rect: normalizedCoords,
         },
-        // Success callback
         (extractedText) => {
           updateSnip(snip.id, { status: "success" });
-
-          // Create new text box with extracted text
           const textBox = {
             id: crypto.randomUUID(),
             text: extractedText || "",
@@ -49,9 +175,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             createdAt: Date.now(),
             modifiedAt: Date.now(),
           };
-
           addTextBox(textBox);
-
           if (extractedText) {
             announceToScreenReader(
               `OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`,
@@ -64,12 +188,10 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             );
           }
         },
-        // Error callback
         (error) => {
           updateSnip(snip.id, { status: "error", error: error.message });
           announceToScreenReader(`OCR failed: ${error.message}`, "error");
         },
-        // Timeout callback
         () => {
           updateSnip(snip.id, { status: "error", error: "Request timed out" });
           announceToScreenReader(
@@ -90,13 +212,10 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         );
       } else {
         updateSnip(snip.id, { status: "processing" });
-        announceToScreenReader(
-          `Selection resized. Processing OCR...`,
-          "status",
-        );
+        announceToScreenReader(`Selection resized. Processing OCR...`, "status");
       }
     },
-    [scale, pageDimensions, pageNumber, updateSnip, addTextBox, pdfId],
+    [convertToNormalizedPDFCoords, pageNumber, updateSnip, addTextBox, pdfId],
   );
 
   // Keyboard handler for moving/resizing selections
@@ -107,13 +226,12 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       const snip = snips.find((s) => s.id === selectedSnipId);
       if (!snip || !snip.browserRect) return;
 
-      const moveStep = 5; // pixels
-      const resizeStep = 5; // pixels
+      const moveStep = 5;
+      const resizeStep = 5;
       let newRect = { ...snip.browserRect };
       let changed = false;
 
       if (e.shiftKey) {
-        // Shift + Arrow: Resize
         switch (e.key) {
           case "ArrowUp":
             newRect.height = Math.max(10, newRect.height - resizeStep);
@@ -135,7 +253,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
             break;
         }
       } else {
-        // Arrow: Move
         switch (e.key) {
           case "ArrowUp":
             newRect.y = Math.max(0, newRect.y - moveStep);
@@ -162,8 +279,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         e.preventDefault();
         updateSnip(selectedSnipId, { browserRect: newRect });
 
-        // Re-send OCR request with new coordinates (debounced)
-        // We'll send after a short delay to avoid sending too many requests
         if (window.resizeOCRTimeout) {
           clearTimeout(window.resizeOCRTimeout);
         }
@@ -172,13 +287,9 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         }, 500);
 
         const action = e.shiftKey ? "resized" : "moved";
-        announceToScreenReader(
-          `Selection ${action} using arrow keys`,
-          "status",
-        );
+        announceToScreenReader(`Selection ${action} using arrow keys`, "status");
       }
 
-      // Delete key: Delete selected snip
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         deleteSnip(selectedSnipId);
@@ -196,7 +307,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
     };
   }, [selectedSnipId, snips, updateSnip, deleteSnip, resendOCRRequest]);
 
-  // Helper: Get handle at position (returns { snipId, handle } or null)
+  // Helper: Get handle at position
   const getHandleAtPosition = useCallback(
     (x, y) => {
       const currentPageSnips = snips.filter(
@@ -243,12 +354,12 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
   );
 
   // Mouse down - start drawing or resizing
+  // Use OVERLAY-relative coordinates for visual feedback
   const handleMouseDown = (e) => {
     const rect = overlayRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Check if clicking on a resize handle
     const handle = getHandleAtPosition(x, y);
     if (handle) {
       setResizing(handle);
@@ -256,7 +367,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       return;
     }
 
-    // Otherwise, start drawing a new selection
     setIsDrawing(true);
     setStartPoint({ x, y });
     setCurrentRect({ x, y, width: 0, height: 0 });
@@ -269,7 +379,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
 
-    // Handle resizing
     if (resizing) {
       const snip = snips.find((s) => s.id === resizing.snipId);
       if (!snip || !snip.browserRect) return;
@@ -277,7 +386,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       const { browserRect } = snip;
       let newRect = { ...browserRect };
 
-      // Calculate new dimensions based on handle
       switch (resizing.handle) {
         case "nw":
           newRect = {
@@ -347,7 +455,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
           break;
       }
 
-      // Normalize negative dimensions
       if (newRect.width < 0) {
         newRect.x = newRect.x + newRect.width;
         newRect.width = Math.abs(newRect.width);
@@ -357,18 +464,15 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         newRect.height = Math.abs(newRect.height);
       }
 
-      // Update the snip's browser rect
       updateSnip(resizing.snipId, { browserRect: newRect });
       return;
     }
 
-    // Handle drawing new selection
     if (!isDrawing || !startPoint) return;
 
     const width = currentX - startPoint.x;
     const height = currentY - startPoint.y;
 
-    // Normalize negative dimensions (drawing from bottom-right to top-left)
     const normalizedRect = {
       x: width < 0 ? currentX : startPoint.x,
       y: height < 0 ? currentY : startPoint.y,
@@ -381,11 +485,9 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 
   // Mouse up - complete selection or resizing
   const handleMouseUp = () => {
-    // Handle resizing completion
     if (resizing) {
       const snip = snips.find((s) => s.id === resizing.snipId);
       if (snip && snip.browserRect) {
-        // Re-send OCR request with new coordinates
         resendOCRRequest(snip);
       }
       setResizing(null);
@@ -398,55 +500,45 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
       currentRect.width < 10 ||
       currentRect.height < 10
     ) {
-      // Ignore very small selections (likely accidental clicks)
       setIsDrawing(false);
       setStartPoint(null);
       setCurrentRect(null);
       return;
     }
 
-    // Convert browser pixel coordinates to normalized PDF coordinates
-    const normalizedCoords = convertToNormalizedPDFCoords(
-      currentRect,
-      scale,
-      pageDimensions,
-    );
+    // Convert to normalized PDF coordinates (accounting for page offset)
+    const normalizedCoords = convertToNormalizedPDFCoords(currentRect);
 
     const snipId = crypto.randomUUID();
 
-    // Add snip to context (non-blocking UI per FR-025)
     const newSnip = {
       id: snipId,
       pageNumber,
       rect: normalizedCoords,
-      browserRect: currentRect, // Keep for visual feedback
-      status: "pending", // Will change to 'processing' → 'success'/'error'
+      browserRect: currentRect,
+      status: "pending",
       createdAt: Date.now(),
     };
 
     addSnip(newSnip);
 
-    // Announce to screen reader
     announceToScreenReader(
       `Snip created on page ${pageNumber}. Processing OCR...`,
       "status",
     );
 
-    // Enqueue OCR request (non-blocking, FIFO queue with max 50 requests)
     const requestId = ocrQueue.enqueue(
       {
         pdf_id: pdfId,
         page: pageNumber,
         rect: normalizedCoords,
       },
-      // Success callback
       (extractedText) => {
         updateSnip(snipId, { status: "success" });
 
-        // Create new text box with extracted text
         const textBox = {
           id: crypto.randomUUID(),
-          text: extractedText || "", // Handle empty text case
+          text: extractedText || "",
           pageNumber,
           createdAt: Date.now(),
           modifiedAt: Date.now(),
@@ -454,7 +546,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
 
         addTextBox(textBox);
 
-        // Announce success
         if (extractedText) {
           announceToScreenReader(
             `OCR complete. Text extracted: ${extractedText.substring(0, 50)}...`,
@@ -467,12 +558,10 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
           );
         }
       },
-      // Error callback
       (error) => {
         updateSnip(snipId, { status: "error", error: error.message });
         announceToScreenReader(`OCR failed: ${error.message}`, "error");
       },
-      // Timeout callback
       () => {
         updateSnip(snipId, { status: "error", error: "Request timed out" });
         announceToScreenReader(
@@ -483,7 +572,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
     );
 
     if (!requestId) {
-      // Queue is full (more than 50 pending requests)
       updateSnip(snipId, {
         status: "error",
         error: "Too many pending requests",
@@ -493,11 +581,9 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         "error",
       );
     } else {
-      // Update snip to processing status
       updateSnip(snipId, { status: "processing" });
     }
 
-    // Reset drawing state
     setIsDrawing(false);
     setStartPoint(null);
     setCurrentRect(null);
@@ -525,12 +611,10 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         />
       )}
 
-      {/* Render all snips with resize handles */}
       {snips
         .filter((snip) => snip.pageNumber === pageNumber && snip.browserRect)
         .map((snip) => (
           <div key={snip.id}>
-            {/* Snip rectangle */}
             <div
               className={`${styles.snipRect} ${snip.id === selectedSnipId ? styles.selected : ""} ${snip.status === "processing" ? styles.processing : ""}`}
               style={{
@@ -547,7 +631,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               )}
             </div>
 
-            {/* Delete button */}
             <button
               className={styles.deleteButton}
               style={{
@@ -568,7 +651,6 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
               ×
             </button>
 
-            {/* Resize handles */}
             <div
               className={styles.resizeHandle}
               data-handle="nw"
