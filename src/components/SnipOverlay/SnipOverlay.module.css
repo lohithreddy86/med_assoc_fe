@@ -4,11 +4,20 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  /* Leave space for scrollbar (typically 15-17px) on the right */
+  /* Using calc to ensure we don't cover the scrollbar area */
+  width: calc(100% - 17px);
   height: 100%;
   cursor: crosshair;
   z-index: 10;
   pointer-events: auto;
+}
+
+/* For systems with overlay/hidden scrollbars (macOS), extend to full width */
+@supports (scrollbar-width: none) or (-webkit-overflow-scrolling: touch) {
+  .overlay {
+    width: 100%;
+  }
 }
 
 .selection {
