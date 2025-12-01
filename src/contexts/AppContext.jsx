@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
   } = useUndo({
     pdfDocument: null, // PDF.js document object
     pdfMetadata: null, // { fileName, fileSize, pageCount, uploadTimestamp }
+    pdfId: null, // Backend PDF identifier for OCR requests
     currentPage: 1,
     snips: [], // Array of snip objects
     textBoxes: [], // Array of text box objects
@@ -28,11 +29,12 @@ export function AppProvider({ children }) {
 
   // Helper functions to update specific parts of state
 
-  const setPDFDocument = (pdfDoc, metadata) => {
+  const setPDFDocument = (pdfDoc, metadata, pdfId = null) => {
     setState((prevState) => ({
       ...prevState,
       pdfDocument: pdfDoc,
       pdfMetadata: metadata,
+      pdfId: pdfId,
       currentPage: 1,
       snips: [],
       textBoxes: [],

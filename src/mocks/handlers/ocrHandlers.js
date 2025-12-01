@@ -20,9 +20,18 @@ export const ocrHandlers = [
   http.post("/api/snip-crop", async ({ request }) => {
     try {
       const body = await request.json();
-      const { page, rect } = body;
+      const { pdf_id, page, rect } = body;
 
       // Validate request payload
+      if (!pdf_id) {
+        return HttpResponse.json(
+          {
+            error: "Missing required field: pdf_id",
+          },
+          { status: 400 },
+        );
+      }
+
       if (!page || !rect) {
         return HttpResponse.json(
           {

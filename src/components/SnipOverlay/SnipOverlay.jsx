@@ -5,7 +5,7 @@ import { ocrQueue } from "../../services/ocrQueue";
 import styles from "./SnipOverlay.module.css";
 
 export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
-  const { addSnip, updateSnip, addTextBox, deleteSnip, snips } =
+  const { addSnip, updateSnip, addTextBox, deleteSnip, snips, pdfId } =
     useAppContext();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
@@ -30,9 +30,10 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         status: "pending",
       });
 
-      // Enqueue new OCR request
+      // Enqueue new OCR request with pdf_id
       const requestId = ocrQueue.enqueue(
         {
+          pdf_id: pdfId,
           page: pageNumber,
           rect: normalizedCoords,
         },
@@ -95,7 +96,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
         );
       }
     },
-    [scale, pageDimensions, pageNumber, updateSnip, addTextBox],
+    [scale, pageDimensions, pageNumber, updateSnip, addTextBox, pdfId],
   );
 
   // Keyboard handler for moving/resizing selections
@@ -434,6 +435,7 @@ export function SnipOverlay({ scale, pageDimensions, pageNumber }) {
     // Enqueue OCR request (non-blocking, FIFO queue with max 50 requests)
     const requestId = ocrQueue.enqueue(
       {
+        pdf_id: pdfId,
         page: pageNumber,
         rect: normalizedCoords,
       },

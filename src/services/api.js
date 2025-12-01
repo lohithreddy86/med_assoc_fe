@@ -47,15 +47,62 @@ async function apiFetch(url, options = {}) {
 }
 
 /**
+ * Upload PDF to backend server
+ *
+ * @param {File} file - PDF file to upload
+ * @returns {Promise<Object>} Upload result { pdf_id, filename, page_count }
+ * @throws {Error} If upload fails
+ */
+export async function uploadPDF(file) {
+  const csrfToken = getCSRFToken();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const config = {
+    method: "POST",
+    body: formData,
+    credentials: "same-origin",
+    headers: {
+      ...(csrfToken && { "X-CSRF-Token": csrfToken }),
+      // Note: Don't set Content-Type for FormData - browser sets it with boundary
+    },
+  };
+
+  try {
+    const response = await fetch("/api/upload-pdf", config);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `PDF upload failed: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error.message.startsWith("PDF upload failed")) {
+      throw error;
+    }
+    throw new Error(`Network error: ${error.message}`);
+  }
+}
+
+/**
  * OCR text extraction API
  *
  * @param {Object} snipData - Snip data
+ * @param {string} snipData.pdf_id - PDF identifier from upload
  * @param {number} snipData.page - PDF page number
  * @param {Object} snipData.rect - Normalized PDF coordinates {x, y, width, height}
  * @returns {Promise<Object>} OCR result {id, text, image_id}
  * @throws {Error} If request fails
  */
 export async function extractText(snipData) {
+  if (!snipData.pdf_id) {
+    throw new Error("pdf_id is required for OCR extraction");
+  }
+
   const response = await apiFetch("/api/snip-crop", {
     method: "POST",
     body: JSON.stringify(snipData),

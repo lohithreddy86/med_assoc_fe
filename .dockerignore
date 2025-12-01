@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+build
+dist
+
+# Development
+.git
+.gitignore
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage
+*.test.js
+*.spec.js
+__tests__
+
+# Documentation
+*.md
+!README.md
+docs
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Specs
+specs
+
+# Config files not needed in build
+.eslintrc*
+.prettierrc*
+lighthouserc*

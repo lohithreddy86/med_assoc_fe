@@ -3,6 +3,7 @@ import { Box, Button, Typography, Alert } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
 import { PDFDocument } from "pdf-lib";
 import { useAppContext } from "../../contexts/AppContext";
+import { uploadPDF } from "../../services/api";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Configure PDF.js worker - Must match pdfjs-dist version
@@ -83,16 +84,20 @@ export function PDFUploader() {
       // Validate PDF structure for malicious content (T021a)
       await validatePDFStructure(arrayBuffer);
 
-      // Load PDF with PDF.js to get metadata
+      // Upload PDF to backend server and get pdf_id
+      const uploadResult = await uploadPDF(file);
+      const pdfId = uploadResult.pdf_id;
+
+      // Load PDF with PDF.js to get metadata for local viewing
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdfDoc = await loadingTask.promise;
 
-      // Create a Blob URL for the PDF
+      // Create a Blob URL for the PDF (for local rendering)
       // This allows the file to be loaded multiple times without ArrayBuffer detachment issues
       const blob = new Blob([file], { type: "application/pdf" });
       const pdfUrl = URL.createObjectURL(blob);
 
-      // Store PDF document URL and metadata in context
+      // Store PDF document URL, metadata, and backend pdf_id in context
       const metadata = {
         fileName: file.name,
         fileSize: file.size,
@@ -100,7 +105,7 @@ export function PDFUploader() {
         uploadTimestamp: Date.now(),
       };
 
-      setPDFDocument(pdfUrl, metadata);
+      setPDFDocument(pdfUrl, metadata, pdfId);
 
       // Announce success to screen readers
       announceToScreenReader(
